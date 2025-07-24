@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socratic Method Linker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Montserrat and Times New Roman -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Times+New+Roman:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the body and elements to achieve a futuristic, dark theme */
+        body {
+            font-family: 'Montserrat', sans-serif; /* New, more artistic and professional font */
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Dark gradient background */
+            color: #e2e8f0; /* Light gray text for contrast */
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering for webkit browsers */
+            -moz-osx-font-smoothing: grayscale; /* Smoother font rendering for firefox */
+            font-size: 0.95rem; /* Slightly smaller base font size for a sleeker look */
+        }
+        .container-card {
+            background-color: #1e3a2e; /* Dark green background for the main card */
+            border-color: #345c48; /* Slightly lighter green border for definition */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1); /* Deeper shadow */
+            transition: all 0.3s ease-in-out; /* Smooth transitions for hover/focus */
+        }
+        .container-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+        }
+        textarea, select {
+            background-color: #1a2c22; /* Even darker green background for inputs */
+            color: #e2e8f0; /* Light text color */
+            border: 1px solid #345c48; /* Subtle green border */
+            border-radius: 0.5rem; /* More rounded corners */
+            padding: 0.75rem 1rem; /* Increased horizontal padding (px-4 py-3 equivalent) */
+            min-height: 80px; /* Increased vertical height for textareas */
+            resize: vertical;
+            transition: all 0.2s ease-in-out; /* Smooth transitions */
+        }
+        textarea {
+            /* Vertical centering for placeholder text and content */
+            display: flex;
+            align-items: center;
+            line-height: 1.5; /* Adjust line height for better vertical centering */
+        }
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #00e676; /* Vibrant green border on focus */
+            box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.5); /* Glowing green ring on focus */
+        }
+        select {
+            height: 80px; /* Match min-height of textarea */
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23e2e8f0'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            width: 6rem; /* Maintained width for dropdowns */
+            flex-shrink: 0; /* Prevent dropdowns from shrinking */
+            text-align: center; /* Center the text inside the dropdown */
+            text-align-last: center; /* For IE/Edge compatibility for centered dropdown text */
+            padding-right: 2rem; /* Add padding to prevent text overlapping the custom arrow */
+        }
+        .text-accent {
+            color: #00e676; /* A vibrant green for accents */
+        }
+        .display-box {
+            background-color: #1a2c22; /* Darker green background for display area */
+            border: 1px solid #00e676; /* Accent border for the display box */
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); /* Subtle glow */
+        }
+        .font-semibold {
+            color: #69f0ae; /* Slightly lighter green for important text */
+        }
+        /* Adjust specific font sizes for headings and labels to maintain hierarchy */
+        h1 {
+            font-size: 2.5rem; /* Slightly smaller for h1 */
+        }
+        label {
+            font-size: 0.9rem; /* Slightly smaller for labels */
+        }
+        h3 {
+            font-size: 1.25rem; /* Slightly smaller for h3 */
+        }
+        /* Specific styles for the deduction panels */
+        .deduction-panel {
+            background-color: #1a2c22; /* Dark green background for panels */
+            border: 1px solid #345c48; /* Slightly lighter green border for panels */
+        }
+        /* Styles for the "Word Document" panel */
+        .word-document {
+            background-color: white; /* White background */
+            color: black; /* Black text */
+            font-family: 'Times New Roman', serif; /* Times New Roman font */
+            font-size: 12pt; /* 12pt font size */
+            line-height: 1.6; /* Standard line height for readability */
+            border: 1px solid #ccc; /* Light gray border */
+            max-width: 800px; /* Adjust width to look like a document, e.g., A4 width */
+            margin-left: auto; /* Center the document */
+            margin-right: auto; /* Center the document */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for document feel */
+        }
+        .word-document h3 {
+            color: black; /* Ensure heading in document is black */
+            font-size: 1.2em; /* Adjust relative to 12pt base */
+            text-align: left; /* Align outline heading to left */
+        }
+        .word-document p {
+            margin-bottom: 0.5em; /* Spacing between outline items */
+        }
+        .word-document .font-bold {
+            font-weight: bold; /* Ensure boldness */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="container-card p-8 rounded-xl w-full border" style="max-width: 1800px;">
+        <h1 class="text-3xl font-bold text-center text-accent mb-6">Socratic Method Interface</h1>
+
+        <p class="text-gray-300 mb-6 text-center">
+            Configure your deduction with one major premise, two minor premises, and two conclusions.
+            <br>Terms (P<sub>1</sub>, P<sub>2</sub>, Q, R) will automatically synchronize across all relevant statements.
+        </p>
+
+        <div class="space-y-8">
+            <!-- Major Premise: Q [connective] R -->
+            <div class="deduction-panel p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-accent mb-6 text-center">Major Premise (Q is R)</h2>
+                <div class="flex items-center justify-center space-x-2">
+                    <textarea id="majorPremiseQInput"
+                              class="flex-1"
+                              placeholder="Q (e.g., mammals)"></textarea>
+                    <select id="majorPremiseConnective">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="majorPremiseRInput"
+                              class="flex-1"
+                              placeholder="R (e.g., animals)"></textarea>
+                </div>
+            </div>
+
+            <!-- Minor Premises Section (side-by-side) -->
+            <div class="flex flex-col lg:flex-row space-y-8 lg:space-y-0 lg:space-x-8">
+                <!-- Minor Premise 1: P1 [connective] Q -->
+                <div class="deduction-panel flex-1 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-accent mb-6 text-center">Minor Premise 1 (P<sub>1</sub> is Q)</h2>
+                    <div class="flex items-center space-x-2">
+                        <textarea id="minorPremise1P1Input"
+                                  class="flex-1"
+                                  placeholder="P1 (e.g., dogs)"></textarea>
+                        <select id="minorPremise1Connective">
+                            <option value="is">is</option>
+                            <option value="am">am</option>
+                            <option value="are">are</option>
+                        </select>
+                        <textarea id="minorPremise1QInput"
+                                  class="flex-1"
+                                  placeholder="Q (e.g., mammals)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Minor Premise 2: P2 [connective] Q -->
+                <div class="deduction-panel flex-1 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-accent mb-6 text-center">Minor Premise 2 (P<sub>2</sub> is Q)</h2>
+                    <div class="flex items-center space-x-2">
+                        <textarea id="minorPremise2P2Input"
+                                  class="flex-1"
+                                  placeholder="P2 (e.g., cats)"></textarea>
+                        <select id="minorPremise2Connective">
+                            <option value="is">is</option>
+                            <option value="am">am</option>
+                            <option value="are">are</option>
+                        </select>
+                        <textarea id="minorPremise2QInput"
+                                  class="flex-1"
+                                  placeholder="Q (e.g., mammals)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusions Section (side-by-side) -->
+            <div class="flex flex-col lg:flex-row space-y-8 lg:space-y-0 lg:space-x-8">
+                <!-- Conclusion 1: P1 [connective] R -->
+                <div class="deduction-panel flex-1 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-accent mb-6 text-center">Conclusion 1 (P<sub>1</sub> is R)</h2>
+                    <div class="flex items-center space-x-2">
+                        <textarea id="conclusion1P1Input"
+                                  class="flex-1"
+                                  placeholder="P1 (e.g., dogs)"></textarea>
+                        <select id="conclusion1Connective">
+                            <option value="is">is</option>
+                            <option value="am">am</option>
+                            <option value="are">are</option>
+                        </select>
+                        <textarea id="conclusion1RInput"
+                                  class="flex-1"
+                                  placeholder="R (e.g., animals)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Conclusion 2: P2 [connective] R -->
+                <div class="deduction-panel flex-1 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-accent mb-6 text-center">Conclusion 2 (P<sub>2</sub> is R)</h2>
+                    <div class="flex items-center space-x-2">
+                        <textarea id="conclusion2P2Input"
+                                  class="flex-1"
+                                  placeholder="P2 (e.g., cats)"></textarea>
+                        <select id="conclusion2Connective">
+                            <option value="is">is</option>
+                            <option value="am">am</option>
+                            <option value="are">are</option>
+                        </select>
+                        <textarea id="conclusion2RInput"
+                                  class="flex-1"
+                                  placeholder="R (e.g., animals)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display area for current linked terms (P1, P2, Q, R) -->
+        <div class="mt-8 p-4 display-box rounded-xl">
+            <h3 class="text-xl font-semibold text-accent mb-3">Current Linked Terms:</h3>
+            <p class="text-gray-200 mb-2">P<sub>1</sub>: <span id="currentP1Display" class="font-bold text-cyan-300"></span></p>
+            <p class="text-gray-200 mb-2">P<sub>2</sub>: <span id="currentP2Display" class="font-bold text-cyan-300"></span></p>
+            <p class="text-gray-200 mb-2">Q: <span id="currentQDisplay" class="font-bold text-cyan-300"></span></p>
+            <p class="text-gray-200">R: <span id="currentRDisplay" class="font-bold text-cyan-300"></span></p>
+        </div>
+
+        <!-- New Word Document Style Outline Panel -->
+        <div class="word-document mt-12 p-8 rounded-lg shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Debate Outline</h3>
+
+            <div class="mb-4">
+                <p>Analogy Question 1: <span id="outlineAnalogyQ1P1"></span> <span id="outlineAnalogyQ1Connective"></span> <span id="outlineAnalogyQ1Q"></span>, right?</p>
+            </div>
+
+            <div class="mb-4">
+                <p>Analogy Question 2: <span id="outlineAnalogyQ2P1"></span> <span id="outlineAnalogyQ2Connective"></span> <span id="outlineAnalogyQ2R"></span>, right?</p>
+            </div>
+
+            <div class="mb-4">
+                <p>Major Premise Question: So <span id="outlineMajorPremiseQ"></span> <span id="outlineMajorPremiseConnective"></span> <span id="outlineMajorPremiseR"></span>, agree?</p>
+            </div>
+
+            <div class="mb-4">
+                <p>Main Question 1: <span id="outlineMainQ1P2"></span> <span id="outlineMainQ1Connective"></span> <span id="outlineMainQ1Q"></span>, right?</p>
+            </div>
+
+            <div class="mb-4">
+                <p>Conclusion: So then, <span id="outlineConclusionP2"></span> <span id="outlineConclusionConnective"></span> <span id="outlineConclusionR"></span>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state to store the current values of P1, P2, Q, and R.
+        let syllogismVars = { P1: '', P2: '', Q: '', R: '' };
+        // Global state to store the selected connectives for each statement.
+        let connectives = { major: 'is', minor1: 'is', minor2: 'is', conc1: 'is', conc2: 'is' };
+
+        // Get references to all HTML elements
+        const majorPremiseQInput = document.getElementById('majorPremiseQInput');
+        const majorPremiseRInput = document.getElementById('majorPremiseRInput');
+        const majorPremiseConnective = document.getElementById('majorPremiseConnective');
+
+        const minorPremise1P1Input = document.getElementById('minorPremise1P1Input');
+        const minorPremise1QInput = document.getElementById('minorPremise1QInput');
+        const minorPremise1Connective = document.getElementById('minorPremise1Connective');
+
+        const minorPremise2P2Input = document.getElementById('minorPremise2P2Input');
+        const minorPremise2QInput = document.getElementById('minorPremise2QInput');
+        const minorPremise2Connective = document.getElementById('minorPremise2Connective');
+
+        const conclusion1P1Input = document.getElementById('conclusion1P1Input');
+        const conclusion1RInput = document.getElementById('conclusion1RInput');
+        const conclusion1Connective = document.getElementById('conclusion1Connective');
+
+        const conclusion2P2Input = document.getElementById('conclusion2P2Input');
+        const conclusion2RInput = document.getElementById('conclusion2RInput');
+        const conclusion2Connective = document.getElementById('conclusion2Connective');
+
+        // Display spans for current linked terms
+        const currentP1Display = document.getElementById('currentP1Display');
+        const currentP2Display = document.getElementById('currentP2Display');
+        const currentQDisplay = document.getElementById('currentQDisplay');
+        const currentRDisplay = document.getElementById('currentRDisplay');
+
+        // Get references to new outline spans
+        const outlineAnalogyQ1P1 = document.getElementById('outlineAnalogyQ1P1');
+        const outlineAnalogyQ1Connective = document.getElementById('outlineAnalogyQ1Connective');
+        const outlineAnalogyQ1Q = document.getElementById('outlineAnalogyQ1Q');
+
+        const outlineAnalogyQ2P1 = document.getElementById('outlineAnalogyQ2P1');
+        const outlineAnalogyQ2Connective = document.getElementById('outlineAnalogyQ2Connective');
+        const outlineAnalogyQ2R = document.getElementById('outlineAnalogyQ2R');
+
+        const outlineMajorPremiseQ = document.getElementById('outlineMajorPremiseQ');
+        const outlineMajorPremiseConnective = document.getElementById('outlineMajorPremiseConnective');
+        const outlineMajorPremiseR = document.getElementById('outlineMajorPremiseR');
+
+        const outlineMainQ1P2 = document.getElementById('outlineMainQ1P2');
+        const outlineMainQ1Connective = document.getElementById('outlineMainQ1Connective');
+        const outlineMainQ1Q = document.getElementById('outlineMainQ1Q');
+
+        const outlineConclusionP2 = document.getElementById('outlineConclusionP2');
+        const outlineConclusionConnective = document.getElementById('outlineConclusionConnective');
+        const outlineConclusionR = document.getElementById('outlineConclusionR');
+
+
+        /**
+         * Updates all input fields (textareas and dropdowns) and the live display of P1, P2, Q, R.
+         * This function is called whenever a change occurs in any of the input elements.
+         * It ensures all parts of the syllogism remain synchronized based on the current
+         * `syllogismVars` (P1, P2, Q, R) and `connectives` state.
+         */
+        function updateAllInputs() {
+            // Update Major Premise
+            if (majorPremiseQInput.value !== syllogismVars.Q) {
+                majorPremiseQInput.value = syllogismVars.Q;
+            }
+            if (majorPremiseRInput.value !== syllogismVars.R) {
+                majorPremiseRInput.value = syllogismVars.R;
+            }
+            if (majorPremiseConnective.value !== connectives.major) {
+                majorPremiseConnective.value = connectives.major;
+            }
+
+            // Update Minor Premise 1
+            if (minorPremise1P1Input.value !== syllogismVars.P1) {
+                minorPremise1P1Input.value = syllogismVars.P1;
+            }
+            if (minorPremise1QInput.value !== syllogismVars.Q) {
+                minorPremise1QInput.value = syllogismVars.Q;
+            }
+            if (minorPremise1Connective.value !== connectives.minor1) {
+                minorPremise1Connective.value = connectives.minor1;
+            }
+
+            // Update Minor Premise 2
+            if (minorPremise2P2Input.value !== syllogismVars.P2) {
+                minorPremise2P2Input.value = syllogismVars.P2;
+            }
+            if (minorPremise2QInput.value !== syllogismVars.Q) {
+                minorPremise2QInput.value = syllogismVars.Q;
+            }
+            if (minorPremise2Connective.value !== connectives.minor2) {
+                minorPremise2Connective.value = connectives.minor2;
+            }
+
+            // Update Conclusion 1
+            if (conclusion1P1Input.value !== syllogismVars.P1) {
+                conclusion1P1Input.value = syllogismVars.P1;
+            }
+            if (conclusion1RInput.value !== syllogismVars.R) {
+                conclusion1RInput.value = syllogismVars.R;
+            }
+            if (conclusion1Connective.value !== connectives.conc1) {
+                conclusion1Connective.value = connectives.conc1;
+            }
+
+            // Update Conclusion 2
+            if (conclusion2P2Input.value !== syllogismVars.P2) {
+                conclusion2P2Input.value = syllogismVars.P2;
+            }
+            if (conclusion2RInput.value !== syllogismVars.R) {
+                conclusion2RInput.value = syllogismVars.R;
+            }
+            if (conclusion2Connective.value !== connectives.conc2) {
+                conclusion2Connective.value = connectives.conc2;
+            }
+
+            // Update the display areas to show the current values of P1, P2, Q, and R.
+            // Use innerHTML to render the <sub> tags correctly
+            currentP1Display.innerHTML = syllogismVars.P1 || 'Empty';
+            currentP2Display.innerHTML = syllogismVars.P2 || 'Empty';
+            currentQDisplay.textContent = syllogismVars.Q || 'Empty';
+            currentRDisplay.textContent = syllogismVars.R || 'Empty';
+
+            // Update Debate Outline Section
+            outlineAnalogyQ1P1.innerHTML = syllogismVars.P1 || 'P<sub>1</sub>';
+            outlineAnalogyQ1Connective.textContent = connectives.minor1 || 'is';
+            outlineAnalogyQ1Q.textContent = syllogismVars.Q || 'Q';
+
+            outlineAnalogyQ2P1.innerHTML = syllogismVars.P1 || 'P<sub>1</sub>'; // This should be P1, not P2, as per the request "P1 is R"
+            outlineAnalogyQ2Connective.textContent = connectives.conc1 || 'is';
+            outlineAnalogyQ2R.textContent = syllogismVars.R || 'R';
+
+            outlineMajorPremiseQ.textContent = syllogismVars.Q || 'Q';
+            outlineMajorPremiseConnective.textContent = connectives.major || 'is';
+            outlineMajorPremiseR.textContent = syllogismVars.R || 'R';
+
+            outlineMainQ1P2.innerHTML = syllogismVars.P2 || 'P<sub>2</sub>';
+            outlineMainQ1Connective.textContent = connectives.minor2 || 'is';
+            outlineMainQ1Q.textContent = syllogismVars.Q || 'Q';
+
+            outlineConclusionP2.innerHTML = syllogismVars.P2 || 'P<sub>2</sub>';
+            outlineConclusionConnective.textContent = connectives.conc2 || 'is';
+            outlineConclusionR.textContent = syllogismVars.R || 'R';
+        }
+
+        // --- Event Listeners ---
+
+        // Major Premise (Q is R)
+        majorPremiseQInput.addEventListener('input', (event) => {
+            syllogismVars.Q = event.target.value;
+            updateAllInputs();
+        });
+        majorPremiseRInput.addEventListener('input', (event) => {
+            syllogismVars.R = event.target.value;
+            updateAllInputs();
+        });
+        majorPremiseConnective.addEventListener('change', (event) => {
+            connectives.major = event.target.value;
+            updateAllInputs();
+        });
+
+        // Minor Premise 1 (P1 is Q)
+        minorPremise1P1Input.addEventListener('input', (event) => {
+            syllogismVars.P1 = event.target.value;
+            updateAllInputs();
+        });
+        minorPremise1QInput.addEventListener('input', (event) => {
+            syllogismVars.Q = event.target.value; // Links to major premise Q
+            updateAllInputs();
+        });
+        minorPremise1Connective.addEventListener('change', (event) => {
+            connectives.minor1 = event.target.value;
+            updateAllInputs();
+        });
+
+        // Minor Premise 2 (P2 is Q)
+        minorPremise2P2Input.addEventListener('input', (event) => {
+            syllogismVars.P2 = event.target.value;
+            updateAllInputs();
+        });
+        minorPremise2QInput.addEventListener('input', (event) => {
+            syllogismVars.Q = event.target.value; // Links to major premise Q
+            updateAllInputs();
+        });
+        minorPremise2Connective.addEventListener('change', (event) => {
+            connectives.minor2 = event.target.value;
+            updateAllInputs();
+        });
+
+        // Conclusion 1 (P1 is R)
+        conclusion1P1Input.addEventListener('input', (event) => {
+            syllogismVars.P1 = event.target.value; // Links to minor premise 1 P1
+            updateAllInputs();
+        });
+        conclusion1RInput.addEventListener('input', (event) => {
+            syllogismVars.R = event.target.value; // Links to major premise R
+            updateAllInputs();
+        });
+        conclusion1Connective.addEventListener('change', (event) => {
+            connectives.conc1 = event.target.value;
+            updateAllInputs();
+        });
+
+        // Conclusion 2 (P2 is R)
+        conclusion2P2Input.addEventListener('input', (event) => {
+            syllogismVars.P2 = event.target.value; // Links to minor premise 2 P2
+            updateAllInputs();
+        });
+        conclusion2RInput.addEventListener('input', (event) => {
+            syllogismVars.R = event.target.value; // Links to major premise R
+            updateAllInputs();
+        });
+        conclusion2Connective.addEventListener('change', (event) => {
+            connectives.conc2 = event.target.value;
+            updateAllInputs();
+        });
+
+        // Initial call to updateAllInputs to set up the display when the page loads.
+        document.addEventListener('DOMContentLoaded', updateAllInputs);
+    </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aristotelian Syllogism Linker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the body and elements to achieve a futuristic, dark theme */
+        body {
+            font-family: 'Montserrat', sans-serif; /* New, more artistic and professional font */
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Dark gradient background */
+            color: #e2e8f0; /* Light gray text for contrast */
+            -webkit-font-smoothing: antialiased; /* Smoother font rendering for webkit browsers */
+            -moz-osx-font-smoothing: grayscale; /* Smoother font rendering for firefox */
+            font-size: 0.95rem; /* Slightly smaller base font size for a sleeker look */
+        }
+        .container-card {
+            background-color: #2d3748; /* Darker background for the main card */
+            border-color: #4a5568; /* Slightly lighter border for definition */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1); /* Deeper shadow */
+            transition: all 0.3s ease-in-out; /* Smooth transitions for hover/focus */
+        }
+        .container-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+        }
+        textarea, select {
+            background-color: #1a202c; /* Even darker background for inputs */
+            color: #e2e8f0; /* Light text color */
+            border: 1px solid #4a5568; /* Subtle border */
+            border-radius: 0.5rem; /* More rounded corners */
+            padding: 0.75rem 1rem; /* Increased horizontal padding (px-4 py-3 equivalent) */
+            min-height: 80px; /* Increased vertical height for textareas */
+            resize: vertical;
+            transition: all 0.2s ease-in-out; /* Smooth transitions */
+        }
+        textarea {
+            /* Vertical centering for placeholder text and content */
+            display: flex;
+            align-items: center;
+            line-height: 1.5; /* Adjust line height for better vertical centering */
+        }
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #63b3ed; /* Light blue border on focus */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* Glowing blue ring on focus */
+        }
+        select {
+            height: 80px; /* Match min-height of textarea */
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23e2e8f0'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            width: 6rem; /* Maintained width for dropdowns */
+            flex-shrink: 0; /* Prevent dropdowns from shrinking */
+            text-align: center; /* Center the text inside the dropdown */
+            text-align-last: center; /* For IE/Edge compatibility for centered dropdown text */
+            padding-right: 2rem; /* Add padding to prevent text overlapping the custom arrow */
+        }
+        .text-accent {
+            color: #63b3ed; /* A vibrant blue for accents */
+        }
+        .display-box {
+            background-color: #1a202c; /* Darker background for display area */
+            border: 1px solid #63b3ed; /* Accent border for the display box */
+            box-shadow: 0 0 10px rgba(99, 179, 237, 0.3); /* Subtle glow */
+        }
+        .font-semibold {
+            color: #90cdf4; /* Slightly lighter blue for important text */
+        }
+        /* Adjust specific font sizes for headings and labels to maintain hierarchy */
+        h1 {
+            font-size: 2.5rem; /* Slightly smaller for h1 */
+        }
+        label {
+            font-size: 0.9rem; /* Slightly smaller for labels */
+        }
+        h3 {
+            font-size: 1.25rem; /* Slightly smaller for h3 */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="container-card p-8 rounded-xl max-w-6xl w-full border"> <!-- Increased max-w-4xl to max-w-6xl -->
+        <h1 class="text-3xl font-bold text-center text-accent mb-6">Aristotelian Syllogism Interface</h1>
+
+        <p class="text-gray-300 mb-6 text-center">
+            Configure your syllogism by entering terms (P, Q, R) and selecting connectives.
+            <br>Terms will automatically synchronize across all relevant statements.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Premise 1: Q [connective] R -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Premise 1 (Q [connective] R):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="premise1QInput"
+                              class="flex-1"
+                              placeholder="Q (e.g., mammals)"></textarea>
+                    <select id="premise1Connective">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="premise1RInput"
+                              class="flex-1"
+                              placeholder="R (e.g., animals)"></textarea>
+                </div>
+            </div>
+
+            <!-- Premise 2: P [connective] Q -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Premise 2 (P [connective] Q):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="premise2PInput"
+                              class="flex-1"
+                              placeholder="P (e.g., dogs)"></textarea>
+                    <select id="premise2Connective">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="premise2QInput"
+                              class="flex-1"
+                              placeholder="Q (e.g., mammals)"></textarea>
+                </div>
+            </div>
+
+            <!-- Conclusion: P [connective] R -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Conclusion (P [connective] R):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="conclusionPInput"
+                              class="flex-1"
+                              placeholder="P (e.g., dogs)"></textarea>
+                    <select id="conclusionConnective">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="conclusionRInput"
+                              class="flex-1"
+                              placeholder="R (e.g., animals)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display area for current linked terms (P, Q, R) -->
+        <div class="mt-8 p-4 display-box rounded-xl">
+            <h3 class="text-xl font-semibold text-accent mb-3">Current Linked Terms:</h3>
+            <p class="text-gray-200 mb-2">P: <span id="currentPDisplay" class="font-bold text-cyan-300"></span></p>
+            <p class="text-gray-200 mb-2">Q: <span id="currentQDisplay" class="font-bold text-cyan-300"></span></p>
+            <p class="text-gray-200">R: <span id="currentRDisplay" class="font-bold text-cyan-300"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Global state to store the current values of P, Q, and R.
+        let syllogismVars = { P: '', Q: '', R: '' };
+        // Global state to store the selected connectives for each statement.
+        let connectives = { p1: 'is', p2: 'is', conc: 'is' };
+
+        // Get references to all the HTML textarea elements
+        const premise1QInput = document.getElementById('premise1QInput');
+        const premise1RInput = document.getElementById('premise1RInput');
+        const premise2PInput = document.getElementById('premise2PInput');
+        const premise2QInput = document.getElementById('premise2QInput');
+        const conclusionPInput = document.getElementById('conclusionPInput');
+        const conclusionRInput = document.getElementById('conclusionRInput');
+
+        // Get references to the new HTML select (dropdown) elements
+        const premise1Connective = document.getElementById('premise1Connective');
+        const premise2Connective = document.getElementById('premise2Connective');
+        const conclusionConnective = document.getElementById('conclusionConnective');
+
+        // Get references to the HTML span elements where current P, Q, R values are displayed
+        const currentPDisplay = document.getElementById('currentPDisplay');
+        const currentQDisplay = document.getElementById('currentQDisplay');
+        const currentRDisplay = document.getElementById('currentRDisplay');
+
+        /**
+         * Updates all input fields (textareas and dropdowns) and the live display of P, Q, R.
+         * This function is called whenever a change occurs in any of the input elements.
+         * It ensures all parts of the syllogism remain synchronized based on the current
+         * `syllogismVars` (P, Q, R) and `connectives` state.
+         */
+        function updateAllInputs() {
+            // Update textarea values only if they are different from the current global state.
+            // This prevents unnecessary updates and potential cursor jumping.
+            if (premise1QInput.value !== syllogismVars.Q) {
+                premise1QInput.value = syllogismVars.Q;
+            }
+            if (premise1RInput.value !== syllogismVars.R) {
+                premise1RInput.value = syllogismVars.R;
+            }
+            if (premise2PInput.value !== syllogismVars.P) {
+                premise2PInput.value = syllogismVars.P;
+            }
+            if (premise2QInput.value !== syllogismVars.Q) {
+                premise2QInput.value = syllogismVars.Q;
+            }
+            if (conclusionPInput.value !== syllogismVars.P) {
+                conclusionPInput.value = syllogismVars.P;
+            }
+            if (conclusionRInput.value !== syllogismVars.R) {
+                conclusionRInput.value = syllogismVars.R;
+            }
+
+            // Update dropdown selected values based on the current `connectives` state.
+            if (premise1Connective.value !== connectives.p1) {
+                premise1Connective.value = connectives.p1;
+            }
+            if (premise2Connective.value !== connectives.p2) {
+                premise2Connective.value = connectives.p2;
+            }
+            if (conclusionConnective.value !== connectives.conc) {
+                conclusionConnective.value = connectives.conc;
+            }
+
+            // Update the display areas to show the current values of P, Q, and R.
+            // If a term is empty, display 'Empty' for clarity.
+            currentPDisplay.textContent = syllogismVars.P || 'Empty';
+            currentQDisplay.textContent = syllogismVars.Q || 'Empty';
+            currentRDisplay.textContent = syllogismVars.R || 'Empty';
+        }
+
+        // --- Event Listeners for each textarea (terms) ---
+
+        premise1QInput.addEventListener('input', (event) => {
+            syllogismVars.Q = event.target.value; // Update Q in global state
+            updateAllInputs(); // Synchronize all textboxes and dropdowns
+        });
+
+        premise1RInput.addEventListener('input', (event) => {
+            syllogismVars.R = event.target.value; // Update R in global state
+            updateAllInputs(); // Synchronize all textboxes and dropdowns
+        });
+
+        premise2PInput.addEventListener('input', (event) => {
+            syllogismVars.P = event.target.value; // Update P in global state
+            updateAllInputs(); // Synchronize all textboxes and dropdowns
+        });
+
+        premise2QInput.addEventListener('input', (event) => {
+            syllogismVars.Q = event.target.value; // Update Q in global state
+            updateAllInputs();
+        });
+
+        conclusionPInput.addEventListener('input', (event) => {
+            syllogismVars.P = event.target.value; // Update P in global state
+            updateAllInputs();
+        });
+
+        conclusionRInput.addEventListener('input', (event) => {
+            syllogismVars.R = event.target.value; // Update R in global state
+            updateAllInputs();
+        });
+
+        // --- Event Listeners for each dropdown (connectives) ---
+
+        premise1Connective.addEventListener('change', (event) => {
+            connectives.p1 = event.target.value; // Update connective for premise 1
+            updateAllInputs();
+        });
+
+        premise2Connective.addEventListener('change', (event) => {
+            connectives.p2 = event.target.value; // Update connective for premise 2
+            updateAllInputs();
+        });
+
+        conclusionConnective.addEventListener('change', (event) => {
+            connectives.conc = event.target.value; // Update connective for conclusion
+            updateAllInputs();
+        });
+
+        // Initial call to updateAllInputs to set up the display when the page loads.
+        updateAllInputs();
+    </script>
+</body>
+</html>
