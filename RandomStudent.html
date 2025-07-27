@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Picker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-400 to-purple-600 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-lg w-full">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Random Student Picker</h1>
+
+        <!-- File Upload Section -->
+        <div class="mb-6">
+            <label for="studentFile" class="block text-gray-700 text-sm font-bold mb-2">
+                Upload Student List (.txt or .csv, one name per line):
+            </label>
+            <input type="file" id="studentFile" accept=".txt,.csv"
+                   class="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100 cursor-pointer">
+        </div>
+
+        <!-- Display Area for Student List (Optional: for user to see uploaded names) -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">Loaded Students:</h2>
+            <textarea id="studentListDisplay" readonly
+                      class="w-full h-32 p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800
+                             resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"></textarea>
+            <p id="studentCount" class="text-sm text-gray-600 mt-1">No students loaded.</p>
+        </div>
+
+        <!-- Display area for the picked student -->
+        <div id="pickedStudentDisplay"
+             class="text-5xl font-black text-blue-800 mb-8 h-24 flex items-center justify-center bg-blue-50 rounded-lg shadow-inner">
+            <!-- Picked student will appear here -->
+        </div>
+
+        <!-- Button to pick a student -->
+        <button id="pickStudentButton"
+                class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700
+                       text-white font-bold py-4 px-8 rounded-full shadow-lg transform transition-all duration-200
+                       active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300">
+            Pick Random Student
+        </button>
+    </div>
+
+    <script>
+        // Get references to elements
+        const studentFile = document.getElementById('studentFile');
+        const studentListDisplay = document.getElementById('studentListDisplay');
+        const studentCount = document.getElementById('studentCount');
+        const pickedStudentDisplay = document.getElementById('pickedStudentDisplay');
+        const pickStudentButton = document.getElementById('pickStudentButton');
+
+        let students = []; // Array to store student names
+
+        // Function to handle file upload
+        studentFile.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    // Split content by new line, filter out empty lines, and trim whitespace
+                    students = content.split('\n')
+                                      .map(name => name.trim())
+                                      .filter(name => name !== '');
+
+                    studentListDisplay.value = students.join('\n'); // Display loaded names
+                    studentCount.textContent = `${students.length} student(s) loaded.`;
+                    pickedStudentDisplay.textContent = ''; // Clear previous pick
+                    pickedStudentDisplay.classList.remove('text-red-600'); // Remove error color
+                };
+
+                reader.onerror = (e) => {
+                    console.error("Error reading file:", e);
+                    studentListDisplay.value = "Error loading file.";
+                    studentCount.textContent = "Error loading students.";
+                    pickedStudentDisplay.textContent = 'Error!';
+                    pickedStudentDisplay.classList.add('text-red-600');
+                };
+
+                reader.readAsText(file); // Read the file as text
+            } else {
+                students = [];
+                studentListDisplay.value = '';
+                studentCount.textContent = 'No students loaded.';
+                pickedStudentDisplay.textContent = '';
+                pickedStudentDisplay.classList.remove('text-red-600');
+            }
+        });
+
+        // Function to pick a random student
+        pickStudentButton.addEventListener('click', () => {
+            if (students.length === 0) {
+                pickedStudentDisplay.textContent = 'Please upload a student list first!';
+                pickedStudentDisplay.classList.add('text-red-600');
+                return;
+            }
+
+            pickedStudentDisplay.classList.remove('text-red-600'); // Ensure normal color for valid picks
+            const randomIndex = Math.floor(Math.random() * students.length);
+            const pickedStudent = students[randomIndex];
+            pickedStudentDisplay.textContent = pickedStudent;
+        });
+    </script>
+</body>
+</html>
