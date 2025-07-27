@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For or Against</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-400 to-purple-600 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Your Side</h1>
+
+        <!-- Display area for the word -->
+        <div id="wordDisplay" class="text-6xl font-black text-gray-900 mb-8 h-24 flex items-center justify-center">
+            <!-- Word will appear here -->
+        </div>
+
+        <!-- Button to generate the word -->
+        <button id="generateButton"
+                class="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700
+                       text-white font-bold py-4 px-8 rounded-full shadow-lg transform transition-all duration-200
+                       active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-300">
+            Generate Side
+        </button>
+    </div>
+
+    <script>
+        // Get references to the button and the display area
+        const generateButton = document.getElementById('generateButton');
+        const wordDisplay = document.getElementById('wordDisplay');
+
+        // Array of possible words
+        const words = ['For', 'Against'];
+
+        // Function to generate and display a random word
+        function generateRandomWord() {
+            // Get a random index from the words array
+            const randomIndex = Math.floor(Math.random() * words.length);
+            // Get the word at the random index
+            const randomWord = words[randomIndex];
+            // Update the text content of the display area
+            wordDisplay.textContent = randomWord;
+
+            // Apply dynamic text color based on the word
+            if (randomWord === 'For') {
+                wordDisplay.classList.remove('text-red-600'); // Remove previous color if any
+                wordDisplay.classList.add('text-green-600');
+            } else {
+                wordDisplay.classList.remove('text-green-600'); // Remove previous color if any
+                wordDisplay.classList.add('text-red-600');
+            }
+        }
+
+        // Add event listener to the button
+        generateButton.addEventListener('click', generateRandomWord);
+
+        // Initial display when the page loads (optional, can be empty)
+        // generateRandomWord();
+    </script>
+</body>
+</html>
