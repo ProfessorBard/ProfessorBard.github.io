@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Argument Builder</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter and Times New Roman -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <style>
+        /* Use the Inter font family for the UI */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the output document area */
+        #output-document {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.75; /* Increase line spacing for readability */
+        }
+        /* Style for the output paragraph to add an indent */
+        #output-content {
+            text-indent: 2em; /* Adds an indent to the first line of the paragraph */
+            white-space: pre-wrap; /* Preserves whitespace and wraps text */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main container -->
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        
+        <div class="max-w-3xl mx-auto">
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Live Argument Builder</h1>
+                <p class="mt-2 text-gray-600">As you type in the fields below, your argument will be constructed on the page.</p>
+            </div>
+
+            <!-- Form container -->
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md space-y-6">
+
+                <!-- Claim Section -->
+                <div>
+                    <label for="claim" class="block text-lg font-semibold text-gray-700">Claim</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">State your conclusion or the point you are arguing for.</p>
+                    <textarea 
+                        id="claim" 
+                        name="claim" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., Regular exercise improves mental health."></textarea>
+                </div>
+
+                <!-- Evidence 1 Section -->
+                <div>
+                    <label for="evidence1" class="block text-lg font-semibold text-gray-700">Evidence 1</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Provide your first piece of evidence.</p>
+                    <textarea 
+                        id="evidence1" 
+                        name="evidence1" 
+                        rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., A study in 'The Lancet Psychiatry' found that regular exercise reduces days of poor mental health..."></textarea>
+                </div>
+
+                <!-- Reasoning 1 Section -->
+                <div>
+                    <label for="reasoning1" class="block text-lg font-semibold text-gray-700">Reasoning 1</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Explain how Evidence 1 supports your claim.</p>
+                    <textarea 
+                        id="reasoning1" 
+                        name="reasoning1" 
+                        rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., This scientific data directly links physical activity to a measurable reduction in mental distress..."></textarea>
+                </div>
+                
+                <!-- Evidence 2 Section -->
+                <div>
+                    <label for="evidence2" class="block text-lg font-semibold text-gray-700">Evidence 2</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Provide your second piece of evidence.</p>
+                    <textarea 
+                        id="evidence2" 
+                        name="evidence2" 
+                        rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., Furthermore, exercise is known to release endorphins, which have mood-boosting effects."></textarea>
+                </div>
+
+                <!-- Reasoning 2 Section -->
+                <div>
+                    <label for="reasoning2" class="block text-lg font-semibold text-gray-700">Reasoning 2</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Explain how Evidence 2 supports your claim.</p>
+                    <textarea 
+                        id="reasoning2" 
+                        name="reasoning2" 
+                        rows="4" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., This biological mechanism provides a causal link, explaining why exercise makes people feel better."></textarea>
+                </div>
+
+                <!-- Conclusion Section -->
+                <div>
+                    <label for="conclusion" class="block text-lg font-semibold text-gray-700">Conclusion</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Summarize your argument and restate the claim in a new way.</p>
+                    <textarea 
+                        id="conclusion" 
+                        name="conclusion" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., Therefore, the combination of statistical data and known biological effects strongly supports the assertion that..."></textarea>
+                </div>
+
+            </div>
+
+            <!-- Output Document Section -->
+            <div class="mt-12">
+                <div id="output-document" class="bg-white p-8 sm:p-12 rounded-lg shadow-lg min-h-[500px]">
+                    <p id="output-content" class="text-lg text-black"></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Get references to all textareas and the output element
+        const claimInput = document.getElementById('claim');
+        const evidence1Input = document.getElementById('evidence1');
+        const reasoning1Input = document.getElementById('reasoning1');
+        const evidence2Input = document.getElementById('evidence2');
+        const reasoning2Input = document.getElementById('reasoning2');
+        const conclusionInput = document.getElementById('conclusion');
+        const outputContent = document.getElementById('output-content');
+
+        // An array of the input fields to easily iterate over them
+        const inputs = [claimInput, evidence1Input, reasoning1Input, evidence2Input, reasoning2Input, conclusionInput];
+
+        // Function to update the output paragraph
+        function updateOutput() {
+            // Get the value from each textarea
+            const claimText = claimInput.value;
+            const evidence1Text = evidence1Input.value;
+            const reasoning1Text = reasoning1Input.value;
+            const evidence2Text = evidence2Input.value;
+            const reasoning2Text = reasoning2Input.value;
+            const conclusionText = conclusionInput.value;
+            
+            // Combine the text, adding a space only if the preceding text exists and the next part is not empty.
+            const parts = [
+                claimText, 
+                evidence1Text, 
+                reasoning1Text, 
+                evidence2Text, 
+                reasoning2Text, 
+                conclusionText
+            ];
+            
+            // Filter out empty or whitespace-only strings after trimming, then join with a space.
+            const fullText = parts.map(p => p.trim()).filter(Boolean).join(' ');
+
+            // Set the combined text as the content of the output element
+            outputContent.textContent = fullText;
+        }
+
+        // Add an 'input' event listener to each textarea
+        // This event fires every time the user types, pastes, or otherwise changes the input
+        inputs.forEach(input => {
+            input.addEventListener('input', updateOutput);
+        });
+
+        // Initial call to set the state when the page loads
+        updateOutput();
+    </script>
+
+</body>
+</html>
