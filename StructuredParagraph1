@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Argument Builder</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter and Times New Roman -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Times+New+Roman&display=swap" rel="stylesheet">
+    <style>
+        /* Use the Inter font family for the UI */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the output document area */
+        #output-document {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.75; /* Increase line spacing for readability */
+        }
+        /* Style for the output paragraph to add an indent */
+        #output-content {
+            text-indent: 2em; /* Adds an indent to the first line of the paragraph */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main container -->
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        
+        <div class="max-w-3xl mx-auto">
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Live Argument Builder</h1>
+                <p class="mt-2 text-gray-600">As you type in the fields below, your argument will be constructed on the page.</p>
+            </div>
+
+            <!-- Form container -->
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md space-y-6">
+
+                <!-- Claim Section -->
+                <div>
+                    <label for="claim" class="block text-lg font-semibold text-gray-700">Claim</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">State your conclusion or the point you are arguing for.</p>
+                    <textarea 
+                        id="claim" 
+                        name="claim" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., Regular exercise improves mental health."></textarea>
+                </div>
+
+                <!-- Evidence Section -->
+                <div>
+                    <label for="evidence" class="block text-lg font-semibold text-gray-700">Evidence</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Provide data, facts, or observations that support your claim.</p>
+                    <textarea 
+                        id="evidence" 
+                        name="evidence" 
+                        rows="5" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., A study published in 'The Lancet Psychiatry' found that individuals who exercised for 45 minutes, 3-5 times a week, had 1.5 fewer days of poor mental health per month..."></textarea>
+                </div>
+
+                <!-- Reasoning Section -->
+                <div>
+                    <label for="reasoning" class="block text-lg font-semibold text-gray-700">Reasoning</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Explain how your evidence supports your claim. Connect the dots.</p>
+                    <textarea 
+                        id="reasoning" 
+                        name="reasoning" 
+                        rows="5" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., This scientific data directly links physical activity to a measurable reduction in mental distress, suggesting that exercise is an effective strategy for psychological well-being..."></textarea>
+                </div>
+
+                <!-- Conclusion Section -->
+                <div>
+                    <label for="conclusion" class="block text-lg font-semibold text-gray-700">Conclusion</label>
+                    <p class="text-sm text-gray-500 mt-1 mb-2">Summarize your argument and restate the claim in a new way.</p>
+                    <textarea 
+                        id="conclusion" 
+                        name="conclusion" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" 
+                        placeholder="e.g., Therefore, the evidence strongly supports the assertion that incorporating regular physical activity is a beneficial method for enhancing mental health."></textarea>
+                </div>
+
+            </div>
+
+            <!-- Output Document Section -->
+            <div class="mt-12">
+                <div id="output-document" class="bg-white p-8 sm:p-12 rounded-lg shadow-lg min-h-[500px]">
+                    <p id="output-content" class="text-lg text-black"></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Get references to all textareas and the output element
+        const claimInput = document.getElementById('claim');
+        const evidenceInput = document.getElementById('evidence');
+        const reasoningInput = document.getElementById('reasoning');
+        const conclusionInput = document.getElementById('conclusion');
+        const outputContent = document.getElementById('output-content');
+
+        // An array of the input fields to easily iterate over them
+        const inputs = [claimInput, evidenceInput, reasoningInput, conclusionInput];
+
+        // Function to update the output paragraph
+        function updateOutput() {
+            // Get the value from each textarea
+            const claimText = claimInput.value.trim();
+            const evidenceText = evidenceInput.value.trim();
+            const reasoningText = reasoningInput.value.trim();
+            const conclusionText = conclusionInput.value.trim();
+            
+            // Combine the text, adding a space only if the preceding text exists and the next part is not empty.
+            let parts = [claimText, evidenceText, reasoningText, conclusionText].filter(Boolean); // Filter out empty strings
+            let fullText = parts.join(' ');
+
+            // Set the combined text as the content of the output element
+            outputContent.textContent = fullText;
+        }
+
+        // Add an 'input' event listener to each textarea
+        // This event fires every time the user types, pastes, or otherwise changes the input
+        inputs.forEach(input => {
+            input.addEventListener('input', updateOutput);
+        });
+
+        // Initial call to set the state when the page loads
+        updateOutput();
+    </script>
+
+</body>
+</html>
