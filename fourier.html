@@ -60,15 +60,15 @@
 
         <!-- Tab Controls -->
         <nav class="flex border-b border-slate-200 bg-slate-50">
-            <button id="tab-draw" class="tab-btn" onclick="switchTab('draw')">Draw Mode</button>
-            <button id="tab-equation" class="tab-btn active" onclick="switchTab('equation')">Equation Mode</button>
+            <button id="tab-draw" class="tab-btn active" onclick="switchTab('draw')">Draw Mode</button>
+            <button id="tab-equation" class="tab-btn" onclick="switchTab('equation')">Equation Mode</button>
         </nav>
 
         <!-- Main Content -->
         <div class="p-6">
 
             <!-- Tab 1: Draw Mode -->
-            <div id="content-draw" class="tab-content">
+            <div id="content-draw" class="tab-content active">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Left Panel: Instructions & Drawing -->
                     <div class="space-y-4">
@@ -100,7 +100,7 @@
             </div>
 
             <!-- Tab 2: Equation Mode -->
-            <div id="content-equation" class="tab-content active">
+            <div id="content-equation" class="tab-content">
                 <h2 class="text-xl font-semibold mb-3">1. Enter Equations</h2>
                 <p class="text-slate-600 mb-4">Enter your `x(t)` and `y(t)` equations as a sum of terms. Use `2*pi*t` or `2πt`.
                     <br>This mode will automatically convert your sine/cosine pairs into the complex `c_n` terms to run the animation.
@@ -163,7 +163,7 @@
                             <div id="x-equation" class="equation-display text-sm">...</div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">y(t) =</glabel>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">y(t) =</label>
                             <div id="y-equation" class="equation-display text-sm">...</div>
                         </div>
                     </div>
@@ -236,8 +236,10 @@
                 let im = 0;
                 for (let n = 0; n < N; n++) {
                     const phi = (2 * Math.PI * k * n) / N;
-                    re += points[n].x * Math.cos(phi) + points[n].y * Math.sin(phi);
-                    im += points[n].x * Math.sin(phi) - points[n].y * Math.cos(phi);
+                    // Correct DFT calculation for complex numbers
+                    const angle = -phi; // Negative sign for forward transform
+                    re += points[n].x * Math.cos(angle) - points[n].y * Math.sin(angle);
+                    im += points[n].x * Math.sin(angle) + points[n].y * Math.cos(angle);
                 }
                 re /= N;
                 im /= N;
@@ -445,7 +447,7 @@
                 const { freq, amp, phase } = term;
 
                 fourierCtx.save();
-                fourierCtx.translate(currentPos.x, -currentPos.y); // Flip y-axis
+                fourierCtx.translate(currentPos.x, currentPos.y); // Remove y-axis flip
 
                 // Draw epicycle circle
                 fourierCtx.beginPath();
@@ -464,7 +466,7 @@
                 fourierCtx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
                 fourierCtx.lineWidth = 2;
                 fourierCtx.moveTo(0, 0);
-                fourierCtx.lineTo(nextX, -nextY); // Flip y-axis
+                fourierCtx.lineTo(nextX, nextY); // Remove y-axis flip
                 fourierCtx.stroke();
 
                 fourierCtx.restore();
@@ -474,7 +476,7 @@
             }
 
             // Add new point to the path
-            path.unshift({ x: currentPos.x, y: -currentPos.y }); // Flip y-axis
+            path.unshift({ x: currentPos.x, y: currentPos.y }); // Remove y-axis flip
             if (path.length > 600) {
                 path.pop();
             }
@@ -517,21 +519,28 @@
 
             for (let i = 0; i < maxTerms; i++) {
                 const term = fourierTerms[i];
-                let { freq, amp, phase } = term;
+                let { freq, amp, phase, re, im } = term;
                 
                 amp = parseFloat(amp.toFixed(3));
                 phase = parseFloat(phase.toFixed(3));
+                re = parseFloat(re.toFixed(3));
+                im = parseFloat(im.toFixed(3));
 
                 if (amp < 0.001) continue; // Skip negligible terms
 
                 if (freq === 0) {
                     // This is the DC offset (constant term)
-                    xEq += `${parseFloat(term.re.toFixed(3))} + `;
-                    yEq += `${parseFloat(term.im.toFixed(3))} + `;
+                    xEq += `${re} + `;
+                    yEq += `${im} + `;
                 } else {
-                    const phaseStr = phase > 0 ? `+ ${phase}` : `- ${Math.abs(phase)}`;
-                    xEq += `${amp} * cos(${freq} * 2πt ${phaseStr}) + `;
-                    yEq += `${amp} * sin(${freq} * 2πt ${phaseStr}) + `;
+                    // Properly handle both positive and negative frequencies
+                    const sign = phase >= 0 ? '+' : '-';
+                    const absPhase = Math.abs(phase);
+                    
+                    // For x(t): real part - use cosine
+                    xEq += `${amp} * cos(${freq} * 2πt ${sign} ${absPhase}) + `;
+                    // For y(t): imaginary part - use sine
+                    yEq += `${amp} * sin(${freq} * 2πt ${sign} ${absPhase}) + `;
                 }
             }
             
@@ -553,55 +562,50 @@
                 const xTerms = parseEquation(xEqInput.value, 'cos');
                 const yTerms = parseEquation(yEqInput.value, 'sin');
 
-                // Combine terms by frequency
-                const combinedTerms = {};
-                xTerms.forEach(t => {
-                    if (!combinedTerms[t.freq]) combinedTerms[t.freq] = { x_amp: 0, x_phase: 0, y_amp: 0, y_phase: 0 };
-                    combinedTerms[t.freq].x_amp = t.amp;
-                    combinedTerms[t.freq].x_phase = t.phase;
-                });
-                yTerms.forEach(t => {
-                    if (!combinedTerms[t.freq]) combinedTerms[t.freq] = { x_amp: 0, x_phase: 0, y_amp: 0, y_phase: 0 };
-                    combinedTerms[t.freq].y_amp = t.amp;
-                    combinedTerms[t.freq].y_phase = t.phase;
-                });
-
+                // Create complex coefficients from the equations
                 fourierTerms = [];
-                for (const freqStr in combinedTerms) {
-                    const freq = parseInt(freqStr, 10);
-                    const t = combinedTerms[freq];
-                    if (freq === 0) {
-                        // DC offset
-                        fourierTerms.push({
-                            freq: 0,
-                            amp: Math.sqrt(t.x_amp * t.x_amp + t.y_amp * t.y_amp) || 0,
-                            phase: 0,
-                            re: t.x_amp || 0,
-                            im: t.y_amp || 0
-                        });
-                        continue;
-                    }
-                    // Properly combine x and y terms into complex coefficient
-                    // x(t) = A*cos(wt+phi), y(t) = B*sin(wt+psi)
-                    // c_n = (A - iB) * exp(i*phi)
-                    // But for animation, we want amplitude and phase for each vector
-                    // Use both x_amp and y_amp for each frequency
-                    const amp = Math.sqrt((t.x_amp || 0) ** 2 + (t.y_amp || 0) ** 2);
-                    // Calculate phase from x and y amplitudes and phases
-                    let phase = 0;
-                    if (amp > 0) {
-                        phase = Math.atan2(t.y_amp * Math.cos(t.y_phase), t.x_amp * Math.cos(t.x_phase));
-                    }
+                
+                // Handle DC offset (frequency 0)
+                const xDC = xTerms.find(t => t.freq === 0);
+                const yDC = yTerms.find(t => t.freq === 0);
+                
+                if (xDC || yDC) {
                     fourierTerms.push({
-                        freq: freq,
-                        amp: amp,
-                        phase: phase,
-                        re: t.x_amp * Math.cos(t.x_phase) || 0,
-                        im: t.y_amp * Math.cos(t.y_phase) || 0
+                        freq: 0,
+                        amp: Math.sqrt((xDC?.amp || 0)**2 + (yDC?.amp || 0)**2),
+                        phase: Math.atan2(yDC?.amp || 0, xDC?.amp || 0),
+                        re: xDC?.amp || 0,
+                        im: yDC?.amp || 0
                     });
                 }
+                
+                // Handle other frequencies
+                const allFreqs = new Set([...xTerms.map(t => t.freq), ...yTerms.map(t => t.freq)]);
+                
+                for (const freq of allFreqs) {
+                    if (freq === 0) continue; // Already handled
+                    
+                    const xTerm = xTerms.find(t => t.freq === freq);
+                    const yTerm = yTerms.find(t => t.freq === freq);
+                    
+                    if (xTerm || yTerm) {
+                        // Convert amplitude and phase to complex number
+                        const re = xTerm ? xTerm.amp * Math.cos(xTerm.phase) : 0;
+                        const im = yTerm ? yTerm.amp * Math.sin(yTerm.phase) : 0;
+                        
+                        fourierTerms.push({
+                            freq: freq,
+                            amp: Math.sqrt(re**2 + im**2),
+                            phase: Math.atan2(im, re),
+                            re: re,
+                            im: im
+                        });
+                    }
+                }
+                
                 // Sort by amplitude
                 fourierTerms.sort((a, b) => b.amp - a.amp);
+                
                 // Start visualization
                 time = 0;
                 path.length = 0;
@@ -620,53 +624,61 @@
         function parseEquation(eqString, func) {
             const terms = [];
             // Regex to find a single term: Amplitude * func(Frequency * 2πt + Phase)
-            // It's tricky, so we'll simplify by splitting
-            
-            // Replace newlines, then split by ' + '
-            const termStrings = eqString.replace(/(\r\n|\n|\r)/gm, " ").split(/\s*\+\s*/);
-            
             const termRegex = new RegExp(
-                String.raw`^\s*(-?[\d\.]+)\s*\*?\s*${func}?\s*\(\s*(-?[\d\.]+)\s*\*?\s*(?:2\*pi\*t|2πt)\s*([+\-]\s*[\d\.]+)?\s*\)\s*$`,
-                'i'
+                String.raw`(-?[\d\.]+)\s*\*?\s*${func}\s*\(\s*(-?[\d\.]*)\s*\*?\s*(?:2\*pi\*t|2πt)\s*([+\-]\s*[\d\.]+)?\s*\)`,
+                'gi'
             );
             
             // Regex for constant term
-            const constRegex = /^\s*(-?[\d\.]+)\s*$/;
-
-            for (const s of termStrings) {
-                if (s.trim() === "") continue;
+            const constRegex = /(-?[\d\.]+)(?:\s*\+\s*|$)/g;
+            
+            let match;
+            
+            // Parse trigonometric terms
+            while ((match = termRegex.exec(eqString)) !== null) {
+                const amp = parseFloat(match[1]);
+                let freq = parseFloat(match[2]);
+                let phase = 0;
                 
-                const match = s.match(termRegex);
-                const constMatch = s.match(constRegex);
-
-                if (match) {
+                if (match[3]) {
+                    phase = parseFloat(match[3].replace(/\s/g, ''));
+                }
+                
+                // If frequency is NaN (empty), default to 1
+                if (isNaN(freq)) {
+                    freq = 1;
+                }
+                
+                terms.push({
+                    amp: amp,
+                    freq: freq,
+                    phase: phase
+                });
+            }
+            
+            // Parse constant terms
+            let constMatch;
+            while ((constMatch = constRegex.exec(eqString)) !== null) {
+                // Skip if this was already captured as part of a trigonometric term
+                if (termRegex.lastIndex > 0 && constMatch.index < termRegex.lastIndex) {
+                    continue;
+                }
+                
+                const amp = parseFloat(constMatch[1]);
+                if (!isNaN(amp)) {
                     terms.push({
-                        amp: parseFloat(match[1]) || 0,
-                        freq: parseFloat(match[2]) || 0,
-                        phase: parseFloat(match[3] ? match[3].replace(/\s/g, '') : 0) || 0
+                        amp: amp,
+                        freq: 0,
+                        phase: 0
                     });
-                } else if (constMatch && func === 'cos') { // Only 'cos' handles DC offset for x(t)
-                     // This is a constant term (DC offset)
-                     terms.push({
-                         amp: parseFloat(constMatch[1]) || 0,
-                         freq: 0,
-                         phase: 0
-                     });
-                } else if (constMatch && func === 'sin') { // DC offset for y(t)
-                    terms.push({
-                         amp: parseFloat(constMatch[1]) || 0,
-                         freq: 0,
-                         phase: 0 // This will be put in 'im'
-                     });
-                } else {
-                    console.warn(`Could not parse term: "${s}"`);
-                    // throw new Error(`Could not parse term: "${s}"`);
                 }
             }
+            
             return terms;
         }
 
+        // Ensure Equation tab is open by default
+        switchTab('equation');
     </script>
 </body>
 </html>
-
