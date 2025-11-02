@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Drawing Translator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: crosshair;
+        }
+        /* Tab styles */
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            color: #475569; /* slate-600 */
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #0ea5e9; /* sky-500 */
+            border-bottom-color: #0ea5e9; /* sky-500 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Custom scrollbar for equation display */
+        .equation-display {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f1f5f9; /* slate-100 */
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 150px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
+        
+        <!-- Header -->
+        <header class="p-6 bg-gradient-to-r from-sky-500 to-indigo-600 text-white">
+            <h1 class="text-3xl font-bold">Fourier Drawing Translator</h1>
+            <p class="mt-1 text-sky-100">Draw a shape, see its epicycles, and get the equations. Or, enter equations and see them draw!</p>
+        </header>
+
+        <!-- Tab Controls -->
+        <nav class="flex border-b border-slate-200 bg-slate-50">
+            <button id="tab-draw" class="tab-btn active" onclick="switchTab('draw')">Draw Mode</button>
+            <button id="tab-equation" class="tab-btn" onclick="switchTab('equation')">Equation Mode</button>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="p-6">
+
+            <!-- Tab 1: Draw Mode -->
+            <div id="content-draw" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Panel: Instructions & Drawing -->
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-semibold">1. Draw or Upload</h2>
+                        <p class="text-slate-600">Draw a single, continuous, closed shape on the canvas. Or, upload an image with a clear, single, closed shape against a transparent or white background.</p>
+                        
+                        <div class="flex flex-col items-center">
+                            <canvas id="drawing-canvas" width="500" height="500" style="width:500px;height:500px;"></canvas>
+                            <div class="flex gap-4 w-full mt-4">
+                                <button id="process-button" class="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                                    Process Drawing
+                                </button>
+                                <button id="clear-button" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                                    Clear Drawing
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-center my-2 font-semibold text-slate-500">OR</div>
+
+                        <div class="space-y-3 p-4 border border-slate-200 rounded-lg bg-slate-50">
+                            <label for="image-upload" class="block text-sm font-medium text-slate-700">Upload an Image:</label>
+                            <input type="file" id="image-upload" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+                            <button id="process-image-button" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                                Process Image
+                            </button>
+                            <p class="text-xs text-slate-500 text-center">For best results, use a simple shape with a transparent background.</p>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Right Panel: Info -->
+                    <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-700">How This Works</h3>
+                        <p class="text-slate-600 mb-2">This tool captures your drawing as a series of 500 points in 2D space, `(x, y)`.</p>
+                        <p class="text-slate-600 mb-2">We treat these points as a complex number, `z(t) = x(t) + iy(t)`. Clicking "Process Drawing" performs a <strong>Discrete Fourier Transform (DFT)</strong> on these points.</p>
+                        <p class="text-slate-600 mb-4">The DFT breaks your complex signal (the drawing) into a sum of simple rotating vectors, called <strong>epicycles</strong>. Each vector has a frequency, an amplitude (size), and a phase (starting angle).</p>
+                        <p class="text-slate-600">The visualization shows these vectors added tip-to-tail, re-drawing your shape. The equations for `x(t)` and `y(t)` are the <strong>real</strong> (cosine) and <strong>imaginary</strong> (sine) parts of this sum.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Equation Mode -->
+            <div id="content-equation" class="tab-content">
+                <h2 class="text-xl font-semibold mb-3">1. Enter Equations</h2>
+                <p class="text-slate-600 mb-4">Enter your `x(t)` and `y(t)` equations as a sum of terms. Use `2*pi*t` or `2πt`.
+                    <br>This mode will automatically convert your sine/cosine pairs into the complex `c_n` terms to run the animation.
+                </p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label for="x-eq-input" class="block text-sm font-medium text-slate-700 mb-1">x(t) = (sum of cosines)</label>
+                            <textarea id="x-eq-input" rows="6" class="w-full p-2 border border-slate-300 rounded-md font-mono text-sm" placeholder="e.g., 50 * cos(1 * 2πt + 1.5) + -30 * cos(2 * 2πt - 0.4)"></textarea>
+                        </div>
+                        <div>
+                            <label for="y-eq-input" class="block text-sm font-medium text-slate-700 mb-1">y(t) = (sum of sines)</label>
+                            <textarea id="y-eq-input" rows="6" class="w-full p-2 border border-slate-300 rounded-md font-mono text-sm" placeholder="e.g., 50 * sin(1 * 2πt + 1.5) + -30 * sin(2 * 2πt - 0.4)"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-700">Equation Format</h3>
+                        <p class="text-slate-600 mb-2">The parser is flexible, but each term must match this pattern:</p>
+                        <p class="font-mono text-sm bg-slate-200 p-2 rounded">
+                            Amplitude * func(Frequency * 2πt + Phase)
+                        </p>
+                        <ul class="list-disc list-inside text-slate-600 mt-3 space-y-1">
+                            <li>`func` can be `sin` or `cos`.</li>
+                            <li>`2πt` can also be `2*pi*t`.</li>
+                            <li>A constant offset (like `+ 100`) is treated as a frequency 0 term.</li>
+                            <li>Separate terms with a ` + ` sign.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button id="visualize-eq-button" class="mt-6 w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Visualize Equations
+                </button>
+            </div>
+
+            <!-- Visualization & Equations (Common to both modes) -->
+            <div id="visualization-section" class="mt-8 pt-6 border-t border-slate-200">
+                <!-- Visualization Area -->
+                <div class="flex flex-col items-center">
+                    <h2 class="text-xl font-semibold mb-3">2. Visualization</h2>
+                    <canvas id="fourier-canvas" width="500" height="500" style="width:500px;height:500px;"></canvas>
+                    
+                    <!-- Controls for visualization -->
+                    <div class="w-full max-w-lg mt-4">
+                        <label for="terms-slider" class="block text-sm font-medium text-slate-700">
+                            Number of Terms: <span id="terms-count" class="font-bold text-sky-600">1</span>
+                        </label>
+                        <input type="range" id="terms-slider" min="1" max="500" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Active Equations Display -->
+                <div class="mt-8">
+                    <h2 class="text-xl font-semibold mb-3">3. Active Equations</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">x(t) =</label>
+                            <div id="x-equation" class="equation-display text-sm">...</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">y(t) =</label>
+                            <div id="y-equation" class="equation-display text-sm">...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants and State ---
+        const DRAW_SAMPLES = 500;
+        let drawingPoints = [];
+        let fourierTerms = [];
+        let time = 0;
+        let animationId = null;
+        let drawing = false;
+
+        // --- Canvas and Context Setup ---
+        const drawCanvas = document.getElementById('drawing-canvas');
+        const drawCtx = drawCanvas.getContext('2d');
+        const fourierCanvas = document.getElementById('fourier-canvas');
+        const fourierCtx = fourierCanvas.getContext('2d');
+
+        // --- UI Elements ---
+        const processBtn = document.getElementById('process-button');
+        const clearBtn = document.getElementById('clear-button');
+        const slider = document.getElementById('terms-slider');
+        const termsCount = document.getElementById('terms-count');
+        const xEqDisplay = document.getElementById('x-equation');
+        const yEqDisplay = document.getElementById('y-equation');
+        
+        // --- Tab Elements ---
+        const tabDraw = document.getElementById('tab-draw');
+        const tabEquation = document.getElementById('tab-equation');
+        const contentDraw = document.getElementById('content-draw');
+        const contentEquation = document.getElementById('content-equation');
+        const visualizeEqBtn = document.getElementById('visualize-eq-button');
+        const xEqInput = document.getElementById('x-eq-input');
+        const yEqInput = document.getElementById('y-eq-input');
+        const visSection = document.getElementById('visualization-section');
+        visSection.style.display = 'none'; // Hide until processing
+        const imageUpload = document.getElementById('image-upload');
+        const processImageBtn = document.getElementById('process-image-button');
+
+        // --- Tab Switching Logic ---
+        function switchTab(tab) {
+            if (tab === 'draw') {
+                tabDraw.classList.add('active');
+                tabEquation.classList.remove('active');
+                contentDraw.classList.add('active');
+                contentEquation.classList.remove('active');
+            } else {
+                tabDraw.classList.remove('active');
+                tabEquation.classList.add('active');
+                contentDraw.classList.remove('active');
+                contentEquation.classList.add('active');
+            }
+            // Stop animation when switching tabs
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        // --- DFT (Fourier Transform) Logic ---
+        function dft(points) {
+            const N = points.length;
+            const C = []; // Array of fourier coefficients (complex numbers)
+            
+            for (let k = 0; k < N; k++) {
+                let re = 0;
+                let im = 0;
+                for (let n = 0; n < N; n++) {
+                    const phi = (2 * Math.PI * k * n) / N;
+                    // Correct DFT calculation for complex numbers
+                    const angle = -phi; // Negative sign for forward transform
+                    re += points[n].x * Math.cos(angle) - points[n].y * Math.sin(angle);
+                    im += points[n].x * Math.sin(angle) + points[n].y * Math.cos(angle);
+                }
+                re /= N;
+                im /= N;
+
+                C[k] = {
+                    freq: k,
+                    amp: Math.sqrt(re * re + im * im),
+                    phase: Math.atan2(im, re),
+                    re,
+                    im
+                };
+            }
+            return C;
+        }
+
+        // --- Drawing Canvas Logic ---
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            // Scale the mouse/touch coordinates
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            let x, y;
+            if (evt.touches) {
+                x = (evt.touches[0].clientX - rect.left) * scaleX;
+                y = (evt.touches[0].clientY - rect.top) * scaleY;
+            } else {
+                x = (evt.clientX - rect.left) * scaleX;
+                y = (evt.clientY - rect.top) * scaleY;
+            }
+            // Center the drawing (0,0 is canvas center)
+            return {
+                x: x - canvas.width / 2,
+                y: y - canvas.height / 2
+            };
+        }
+
+        function startDrawing(e) {
+            if (e.button === 2) return; // Ignore right-click
+            drawing = true;
+            drawingPoints = [getMousePos(drawCanvas, e)];
+            drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            drawCtx.strokeStyle = '#0284c7'; // sky-600
+            drawCtx.lineWidth = 3;
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            const pos = getMousePos(drawCanvas, e);
+            drawingPoints.push(pos);
+            
+            drawCtx.beginPath();
+            drawCtx.moveTo(
+                drawingPoints[drawingPoints.length - 2].x + drawCanvas.width / 2,
+                drawingPoints[drawingPoints.length - 2].y + drawCanvas.height / 2
+            );
+            drawCtx.lineTo(
+                pos.x + drawCanvas.width / 2,
+                pos.y + drawCanvas.height / 2
+            );
+            drawCtx.stroke();
+        }
+
+        function stopDrawing() {
+            if (!drawing) return;
+            drawing = false;
+            // Close the loop
+            if (drawingPoints.length > 1) {
+                drawCtx.beginPath();
+                drawCtx.moveTo(
+                    drawingPoints[drawingPoints.length - 1].x + drawCanvas.width / 2,
+                    drawingPoints[drawingPoints.length - 1].y + drawCanvas.height / 2
+                );
+                drawCtx.lineTo(
+                    drawingPoints[0].x + drawCanvas.width / 2,
+                    drawingPoints[0].y + drawCanvas.height / 2
+                );
+                drawCtx.stroke();
+            }
+        }
+
+        function clearDrawing() {
+            drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            fourierCtx.clearRect(0, 0, fourierCanvas.width, fourierCanvas.height);
+            drawingPoints = [];
+            fourierTerms = [];
+            time = 0;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            visSection.style.display = 'none';
+            xEqDisplay.innerHTML = '...';
+            yEqDisplay.innerHTML = '...';
+            xEqInput.value = '';
+            yEqInput.value = '';
+        }
+
+        // --- Event Listeners for Drawing ---
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+        drawCanvas.addEventListener('mouseleave', stopDrawing);
+        // Touch events
+        drawCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); }, { passive: false });
+        drawCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+        drawCanvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDrawing(); }, { passive: false });
+        
+        clearBtn.addEventListener('click', clearDrawing);
+        processImageBtn.addEventListener('click', handleImageUpload);
+
+        // --- Image Processing Logic ---
+        
+
+        // --- Processing and Visualization ---
+        processBtn.addEventListener('click', () => {
+            if (drawingPoints.length < 2) {
+                alert("Please draw something first!");
+                return;
+            }
+            // 1. Resample points to have uniform spacing
+            const resampledPoints = resample(drawingPoints, DRAW_SAMPLES);
+            
+            // 2. Run DFT
+            const C = dft(resampledPoints);
+            
+            // 3. Sort terms by amplitude (size)
+            C.sort((a, b) => b.amp - a.amp);
+            
+            // 4. Re-map frequencies (n)
+            fourierTerms = C.map(c => {
+                let freq = c.freq;
+                // Map frequencies from [0, N-1] to [-N/2, N/2]
+                if (freq > DRAW_SAMPLES / 2) {
+                    freq -= DRAW_SAMPLES;
+                }
+                return { ...c, freq };
+            });
+
+            // 5. Reset and start animation
+            time = 0;
+            visSection.style.display = 'block';
+            
+            // 6. Update slider and equations
+            slider.max = DRAW_SAMPLES;
+            slider.value = 100;
+            updateEquations();
+            populateEquationInputs();
+
+            // 7. Start animation loop
+            if (animationId) cancelAnimationFrame(animationId);
+            animate();
+        });
+
+        // Resample points to be equidistant in time (index)
+        function resample(points, n) {
+            const resampled = [];
+            const totalLength = points.reduce((acc, p, i) => {
+                if (i === 0) return 0;
+                const dx = p.x - points[i - 1].x;
+                const dy = p.y - points[i - 1].y;
+                return acc + Math.sqrt(dx * dx + dy * dy);
+            }, 0);
+            
+            const segmentLength = totalLength / (n - 1);
+            let currentDist = 0;
+            let j = 0; // Index in original points
+            
+            resampled.push(points[0]);
+
+            for (let i = 1; i < n - 1; i++) {
+                const targetDist = i * segmentLength;
+                while (currentDist < targetDist) {
+                    if (j + 1 >= points.length) break;
+                    const dx = points[j + 1].x - points[j].x;
+                    const dy = points[j + 1].y - points[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (currentDist + dist >= targetDist) {
+                        const t = (targetDist - currentDist) / dist;
+                        resampled.push({
+                            x: points[j].x + dx * t,
+                            y: points[j].y + dy * t
+                        });
+                        break;
+                    }
+                    currentDist += dist;
+                    j++;
+                }
+            }
+            resampled.push(points[points.length - 1]);
+            return resampled;
+        }
+
+        function handleImageUpload() {
+            const file = imageUpload.files[0];
+            if (!file) {
+                alert("Please select an image file first.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    clearDrawing();
+                    // Draw the image centered on the canvas
+                    const hRatio = drawCanvas.width / img.width;
+                    const vRatio = drawCanvas.height / img.height;
+                    const ratio = Math.min(hRatio, vRatio, 1); // Don't scale up
+                    const centerShift_x = (drawCanvas.width - img.width * ratio) / 2;
+                    const centerShift_y = (drawCanvas.height - img.height * ratio) / 2;
+                    
+                    drawCtx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+
+                    // Find the contour of the drawn image
+                    const contour = findContour(drawCanvas);
+                    if (contour.length < 10) {
+                        alert("Could not detect a clear shape in the image. Please use an image with a simple shape and a transparent or solid background.");
+                        return;
+                    }
+
+                    // Convert contour points to the drawingPoints format (centered)
+                    drawingPoints = contour.map(p => ({
+                        x: p.x - drawCanvas.width / 2,
+                        y: p.y - drawCanvas.height / 2
+                    }));
+
+                    // Trigger the processing
+                    processBtn.click();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function findContour(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+            const points = [];
+
+            // Helper to check if a pixel is non-transparent/non-white
+            const isPixelSolid = (x, y) => {
+                if (x < 0 || x >= width || y < 0 || y >= height) return false;
+                const i = (y * width + x) * 4;
+                // Check alpha channel, and also treat white as transparent
+                return data[i + 3] > 128 && (data[i] < 250 || data[i+1] < 250 || data[i+2] < 250);
+            };
+
+            // 1. Find the first solid pixel (starting point)
+            let start = null;
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (isPixelSolid(x, y)) {
+                        start = { x, y };
+                        break;
+                    }
+                }
+                if (start) break;
+            }
+
+            if (!start) return []; // No shape found
+
+            // 2. Trace the contour (Moore-Neighbor Tracing)
+            const contour = [];
+            let current = start;
+            let dir = 0; // 0:E, 1:NE, 2:N, 3:NW, 4:W, 5:SW, 6:S, 7:SE
+            const neighbors = [
+                { x: 1, y: 0 }, { x: 1, y: -1 }, { x: 0, y: -1 }, { x: -1, y: -1 },
+                { x: -1, y: 0 }, { x: -1, y: 1 }, { x: 0, y: 1 }, { x: 1, y: 1 }
+            ];
+
+            do {
+                contour.push({ x: current.x, y: current.y });
+                
+                // Look for the next pixel in counter-clockwise order
+                let foundNext = false;
+                for (let i = 0; i < 8; i++) {
+                    const checkDir = (dir + i + 7) % 8; // Start looking from one step clockwise from previous direction
+                    const neighbor = {
+                        x: current.x + neighbors[checkDir].x,
+                        y: current.y + neighbors[checkDir].y
+                    };
+
+                    if (isPixelSolid(neighbor.x, neighbor.y)) {
+                        current = neighbor;
+                        dir = checkDir;
+                        foundNext = true;
+                        break;
+                    }
+                }
+                if (!foundNext) break; // Should not happen in a closed shape
+            } while ((current.x !== start.x || current.y !== start.y) && contour.length < 10000);
+
+            return contour;
+        }
+
+        // --- Animation Loop ---
+        const path = [];
+        function animate() {
+            fourierCtx.clearRect(0, 0, fourierCanvas.width, fourierCanvas.height);
+            fourierCtx.save();
+            fourierCtx.translate(fourierCanvas.width / 2, fourierCanvas.height / 2);
+
+            let currentPos = { x: 0, y: 0 };
+            const numTerms = parseInt(slider.value, 10);
+            const maxTerms = Math.min(numTerms, fourierTerms.length);
+            termsCount.textContent = maxTerms;
+
+            for (let i = 0; i < maxTerms; i++) {
+                const term = fourierTerms[i];
+                const { freq, amp, phase } = term;
+
+                fourierCtx.save();
+                fourierCtx.translate(currentPos.x, currentPos.y); // Remove y-axis flip
+
+                // Draw epicycle circle
+                fourierCtx.beginPath();
+                fourierCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                fourierCtx.lineWidth = 1;
+                fourierCtx.arc(0, 0, amp, 0, 2 * Math.PI);
+                fourierCtx.stroke();
+
+                // Calculate vector end
+                const angle = freq * time * 2 * Math.PI + phase;
+                const nextX = amp * Math.cos(angle);
+                const nextY = amp * Math.sin(angle);
+
+                // Draw vector line
+                fourierCtx.beginPath();
+                fourierCtx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                fourierCtx.lineWidth = 2;
+                fourierCtx.moveTo(0, 0);
+                fourierCtx.lineTo(nextX, nextY); // Remove y-axis flip
+                fourierCtx.stroke();
+
+                fourierCtx.restore();
+
+                currentPos.x += nextX;
+                currentPos.y += nextY;
+            }
+
+            // Add new point to the path
+            path.unshift({ x: currentPos.x, y: currentPos.y }); // Remove y-axis flip
+            if (path.length > 600) {
+                path.pop();
+            }
+
+            // Draw the final path
+            fourierCtx.beginPath();
+            fourierCtx.strokeStyle = '#e11d48'; // rose-600
+            fourierCtx.lineWidth = 3;
+            for (let i = 0; i < path.length; i++) {
+                const p = path[i];
+                if (i === 0) fourierCtx.moveTo(p.x, p.y);
+                else fourierCtx.lineTo(p.x, p.y);
+            }
+            fourierCtx.stroke();
+
+            fourierCtx.restore();
+
+            // Increment time
+            time += (1 / DRAW_SAMPLES);
+            if (time > 1) {
+                time = 0;
+                path.length = 0;
+            }
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // --- Equation Display Logic ---
+        slider.addEventListener('input', updateEquations);
+
+        function updateEquations() {
+            if (fourierTerms.length === 0) return;
+            
+            const numTerms = parseInt(slider.value, 10);
+            const maxTerms = Math.min(numTerms, fourierTerms.length);
+            termsCount.textContent = maxTerms;
+
+            let xEq = '';
+            let yEq = '';
+
+            for (let i = 0; i < maxTerms; i++) {
+                const term = fourierTerms[i];
+                let { freq, amp, phase, re, im } = term;
+                
+                amp = parseFloat(amp.toFixed(3));
+                phase = parseFloat(phase.toFixed(3));
+                re = parseFloat(re.toFixed(3));
+                im = parseFloat(im.toFixed(3));
+
+                if (amp < 0.001) continue; // Skip negligible terms
+
+                if (freq === 0) {
+                    // This is the DC offset (constant term)
+                    xEq += `${re} + `;
+                    yEq += `${im} + `;
+                } else {
+                    // Properly handle both positive and negative frequencies
+                    const sign = phase >= 0 ? '+' : '-';
+                    const absPhase = Math.abs(phase);
+                    
+                    // For x(t): real part - use cosine
+                    xEq += `${amp} * cos(${freq} * 2πt ${sign} ${absPhase}) + `;
+                    // For y(t): imaginary part - use sine
+                    yEq += `${amp} * sin(${freq} * 2πt ${sign} ${absPhase}) + `;
+                }
+            }
+            
+            // Remove trailing ' + '
+            xEqDisplay.textContent = xEq.slice(0, -3) || '0';
+            yEqDisplay.textContent = yEq.slice(0, -3) || '0';
+        }
+
+        // --- Equation Mode Logic ---
+
+        // Populate inputs after drawing
+        function populateEquationInputs() {
+            xEqInput.value = xEqDisplay.textContent;
+            yEqInput.value = yEqDisplay.textContent;
+        }
+
+        visualizeEqBtn.addEventListener('click', () => {
+            try {
+                const xTerms = parseEquation(xEqInput.value, 'cos');
+                const yTerms = parseEquation(yEqInput.value, 'sin');
+
+                // Create complex coefficients from the equations
+                fourierTerms = [];
+                
+                // Handle DC offset (frequency 0)
+                const xDC = xTerms.find(t => t.freq === 0);
+                const yDC = yTerms.find(t => t.freq === 0);
+                
+                if (xDC || yDC) {
+                    fourierTerms.push({
+                        freq: 0,
+                        amp: Math.sqrt((xDC?.amp || 0)**2 + (yDC?.amp || 0)**2),
+                        phase: Math.atan2(yDC?.amp || 0, xDC?.amp || 0),
+                        re: xDC?.amp || 0,
+                        im: yDC?.amp || 0
+                    });
+                }
+                
+                // Handle other frequencies
+                const allFreqs = new Set([...xTerms.map(t => t.freq), ...yTerms.map(t => t.freq)]);
+                
+                for (const freq of allFreqs) {
+                    if (freq === 0) continue; // Already handled
+                    
+                    const xTerm = xTerms.find(t => t.freq === freq);
+                    const yTerm = yTerms.find(t => t.freq === freq);
+                    
+                    if (xTerm || yTerm) {
+                        // Convert amplitude and phase to complex number
+                        const re = xTerm ? xTerm.amp * Math.cos(xTerm.phase) : 0;
+                        const im = yTerm ? yTerm.amp * Math.sin(yTerm.phase) : 0;
+                        
+                        fourierTerms.push({
+                            freq: freq,
+                            amp: Math.sqrt(re**2 + im**2),
+                            phase: Math.atan2(im, re),
+                            re: re,
+                            im: im
+                        });
+                    }
+                }
+                
+                // Sort by amplitude
+                fourierTerms.sort((a, b) => b.amp - a.amp);
+                
+                // Start visualization
+                time = 0;
+                path.length = 0;
+                visSection.style.display = 'block';
+                slider.max = 500;
+                slider.value = Math.min(fourierTerms.length, 500);
+                updateEquations();
+                if (animationId) cancelAnimationFrame(animationId);
+                animate();
+            } catch (err) {
+                alert("Error parsing equations: " + err.message);
+                console.error(err);
+            }
+        });
+
+        function parseEquation(eqString, func) {
+            const terms = [];
+            // Regex to find a single term: Amplitude * func(Frequency * 2πt + Phase)
+            const termRegex = new RegExp(
+                String.raw`(-?[\d\.]+)\s*\*?\s*${func}\s*\(\s*(-?[\d\.]*)\s*\*?\s*(?:2\*pi\*t|2πt)\s*([+\-]\s*[\d\.]+)?\s*\)`,
+                'gi'
+            );
+            
+            // Regex for constant term
+            const constRegex = /(-?[\d\.]+)(?:\s*\+\s*|$)/g;
+            
+            let match;
+            
+            // Parse trigonometric terms
+            while ((match = termRegex.exec(eqString)) !== null) {
+                const amp = parseFloat(match[1]);
+                let freq = parseFloat(match[2]);
+                let phase = 0;
+                
+                if (match[3]) {
+                    phase = parseFloat(match[3].replace(/\s/g, ''));
+                }
+                
+                // If frequency is NaN (empty), default to 1
+                if (isNaN(freq)) {
+                    freq = 1;
+                }
+                
+                terms.push({
+                    amp: amp,
+                    freq: freq,
+                    phase: phase
+                });
+            }
+            
+            // Parse constant terms
+            let constMatch;
+            while ((constMatch = constRegex.exec(eqString)) !== null) {
+                // Skip if this was already captured as part of a trigonometric term
+                if (termRegex.lastIndex > 0 && constMatch.index < termRegex.lastIndex) {
+                    continue;
+                }
+                
+                const amp = parseFloat(constMatch[1]);
+                if (!isNaN(amp)) {
+                    terms.push({
+                        amp: amp,
+                        freq: 0,
+                        phase: 0
+                    });
+                }
+            }
+            
+            return terms;
+        }
+
+        // Ensure Equation tab is open by default
+        switchTab('equation');
+    </script>
+</body>
+</html>
