@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aristotelian Syllogism Linker (P-Q-R-S)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Montserrat, Times New Roman -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Times+New+Roman:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the body and elements to achieve a futuristic, dark theme */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-size: 0.95rem;
+        }
+        .container-card {
+            background-color: #2d3748;
+            border-color: #4a5568;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        .container-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+        }
+        textarea, select {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            min-height: 80px;
+            resize: vertical;
+            transition: all 0.2s ease-in-out;
+        }
+        textarea {
+            display: flex;
+            align-items: center;
+            line-height: 1.5;
+        }
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5);
+        }
+        select {
+            height: 80px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23e2e8f0'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            width: 6rem;
+            flex-shrink: 0;
+            text-align: center;
+            text-align-last: center;
+            padding-right: 2rem;
+        }
+        .text-accent {
+            color: #63b3ed;
+        }
+        .display-box {
+            background-color: #1a202c;
+            border: 1px solid #63b3ed;
+            box-shadow: 0 0 10px rgba(99, 179, 237, 0.3);
+        }
+        /* Styles for the "Word Document" panel */
+        .word-document {
+            background-color: white;
+            color: black;
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            border: 1px solid #ccc;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .word-document h3 {
+            border-bottom: 2px solid #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        .word-document p {
+            margin-bottom: 1rem;
+        }
+        .highlight-term {
+            font-weight: bold;
+            color: #2b6cb0; /* Professional blue for highlight in doc */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 py-12">
+    <div class="container-card p-8 rounded-xl max-w-6xl w-full border">
+        <h1 class="text-3xl font-bold text-center text-accent mb-6">Extended Syllogism Interface</h1>
+
+        <p class="text-gray-300 mb-6 text-center">
+            Configure your long deduction by entering terms (P, Q, R, S) and selecting connectives.
+            <br>Terms will automatically synchronize across all relevant statements.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Premise 1: R [connective] S -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Premise 1 (R [connective] S):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="p1R" class="flex-1" placeholder="R (e.g., mammals)"></textarea>
+                    <select id="p1Conn">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="p1S" class="flex-1" placeholder="S (e.g., animals)"></textarea>
+                </div>
+            </div>
+
+            <!-- Premise 2: Q [connective] R -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Premise 2 (Q [connective] R):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="p2Q" class="flex-1" placeholder="Q (e.g., dogs)"></textarea>
+                    <select id="p2Conn">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="p2R" class="flex-1" placeholder="R (e.g., mammals)"></textarea>
+                </div>
+            </div>
+
+            <!-- Premise 3: P [connective] Q -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Premise 3 (P [connective] Q):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="p3P" class="flex-1" placeholder="P (e.g., Fido)"></textarea>
+                    <select id="p3Conn">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="p3Q" class="flex-1" placeholder="Q (e.g., dogs)"></textarea>
+                </div>
+            </div>
+
+            <!-- Conclusion: P [connective] S -->
+            <div>
+                <label class="block text-lg font-medium text-accent mb-2">Conclusion (P [connective] S):</label>
+                <div class="flex items-center space-x-2">
+                    <textarea id="concP" class="flex-1" placeholder="P (e.g., Fido)"></textarea>
+                    <select id="concConn">
+                        <option value="is">is</option>
+                        <option value="am">am</option>
+                        <option value="are">are</option>
+                    </select>
+                    <textarea id="concS" class="flex-1" placeholder="S (e.g., animals)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display area for current linked terms (P, Q, R, S) -->
+        <div class="mt-8 p-4 display-box rounded-xl">
+            <h3 class="text-xl font-semibold text-accent mb-3">Current Linked Terms:</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <p class="text-gray-200">P: <span id="dispP" class="font-bold text-cyan-300"></span></p>
+                <p class="text-gray-200">Q: <span id="dispQ" class="font-bold text-cyan-300"></span></p>
+                <p class="text-gray-200">R: <span id="dispR" class="font-bold text-cyan-300"></span></p>
+                <p class="text-gray-200">S: <span id="dispS" class="font-bold text-cyan-300"></span></p>
+            </div>
+        </div>
+
+        <!-- Word Document Style Outline Panel -->
+        <div class="word-document mt-12 p-10 rounded shadow-2xl">
+            <h3 class="text-xl font-bold mb-6">Logical Deduction Outline</h3>
+            
+            <div id="outlineContent">
+                <p><strong>Question 1:</strong> <span id="outP1R" class="highlight-term"></span> <span id="outP1Conn"></span> <span id="outP1S" class="highlight-term"></span>?</p>
+                <p><strong>Question 2:</strong> <span id="outP2Q" class="highlight-term"></span> <span id="outP2Conn"></span> <span id="outP2R" class="highlight-term"></span>?</p>
+                <p><strong>Question 3:</strong> <span id="outP3P" class="highlight-term"></span> <span id="outP3Conn"></span> <span id="outP3Q" class="highlight-term"></span>?</p>
+                <p class="mt-6 pt-4 border-t border-gray-200"><strong>Conclusion:</strong> Therefore, <span id="outConcP" class="highlight-term"></span> <span id="outConcConn"></span> <span id="outConcS" class="highlight-term"></span>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state for P, Q, R, S
+        let state = { P: '', Q: '', R: '', S: '' };
+        let conns = { p1: 'is', p2: 'is', p3: 'is', conc: 'is' };
+
+        const elements = {
+            // Inputs
+            p1R: document.getElementById('p1R'),
+            p1S: document.getElementById('p1S'),
+            p1Conn: document.getElementById('p1Conn'),
+            p2Q: document.getElementById('p2Q'),
+            p2R: document.getElementById('p2R'),
+            p2Conn: document.getElementById('p2Conn'),
+            p3P: document.getElementById('p3P'),
+            p3Q: document.getElementById('p3Q'),
+            p3Conn: document.getElementById('p3Conn'),
+            concP: document.getElementById('concP'),
+            concS: document.getElementById('concS'),
+            concConn: document.getElementById('concConn'),
+            // Term Display
+            dispP: document.getElementById('dispP'),
+            dispQ: document.getElementById('dispQ'),
+            dispR: document.getElementById('dispR'),
+            dispS: document.getElementById('dispS'),
+            // Outline Display
+            outP1R: document.getElementById('outP1R'),
+            outP1S: document.getElementById('outP1S'),
+            outP1Conn: document.getElementById('outP1Conn'),
+            outP2Q: document.getElementById('outP2Q'),
+            outP2R: document.getElementById('outP2R'),
+            outP2Conn: document.getElementById('outP2Conn'),
+            outP3P: document.getElementById('outP3P'),
+            outP3Q: document.getElementById('outP3Q'),
+            outP3Conn: document.getElementById('outP3Conn'),
+            outConcP: document.getElementById('outConcP'),
+            outConcS: document.getElementById('outConcS'),
+            outConcConn: document.getElementById('outConcConn')
+        };
+
+        function sync() {
+            // Update Inputs
+            elements.p1R.value = state.R;
+            elements.p1S.value = state.S;
+            elements.p2Q.value = state.Q;
+            elements.p2R.value = state.R;
+            elements.p3P.value = state.P;
+            elements.p3Q.value = state.Q;
+            elements.concP.value = state.P;
+            elements.concS.value = state.S;
+
+            // Update Connectives
+            elements.p1Conn.value = conns.p1;
+            elements.p2Conn.value = conns.p2;
+            elements.p3Conn.value = conns.p3;
+            elements.concConn.value = conns.conc;
+
+            // Update Display Box
+            elements.dispP.textContent = state.P || '(P)';
+            elements.dispQ.textContent = state.Q || '(Q)';
+            elements.dispR.textContent = state.R || '(R)';
+            elements.dispS.textContent = state.S || '(S)';
+
+            // Update Word Doc Outline
+            elements.outP1R.textContent = state.R || '[R]';
+            elements.outP1S.textContent = state.S || '[S]';
+            elements.outP1Conn.textContent = conns.p1;
+
+            elements.outP2Q.textContent = state.Q || '[Q]';
+            elements.outP2R.textContent = state.R || '[R]';
+            elements.outP2Conn.textContent = conns.p2;
+
+            elements.outP3P.textContent = state.P || '[P]';
+            elements.outP3Q.textContent = state.Q || '[Q]';
+            elements.outP3Conn.textContent = conns.p3;
+
+            elements.outConcP.textContent = state.P || '[P]';
+            elements.outConcS.textContent = state.S || '[S]';
+            elements.outConcConn.textContent = conns.conc;
+        }
+
+        // Event listener helper
+        function bind(el, variable) {
+            el.addEventListener('input', (e) => {
+                state[variable] = e.target.value;
+                sync();
+            });
+        }
+
+        function bindConn(el, key) {
+            el.addEventListener('change', (e) => {
+                conns[key] = e.target.value;
+                sync();
+            });
+        }
+
+        bind(elements.p1R, 'R');
+        bind(elements.p1S, 'S');
+        bind(elements.p2Q, 'Q');
+        bind(elements.p2R, 'R');
+        bind(elements.p3P, 'P');
+        bind(elements.p3Q, 'Q');
+        bind(elements.concP, 'P');
+        bind(elements.concS, 'S');
+
+        bindConn(elements.p1Conn, 'p1');
+        bindConn(elements.p2Conn, 'p2');
+        bindConn(elements.p3Conn, 'p3');
+        bindConn(elements.concConn, 'conc');
+
+        sync();
+    </script>
+</body>
+</html>
