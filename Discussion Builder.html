@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café Convo - Deck Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #3E2723;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .serif-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .cafe-card {
+            background-color: #FFFFFF;
+            border: 1px solid #EAE3D9;
+            box-shadow: 0 10px 25px -5px rgba(62, 39, 35, 0.05), 0 8px 10px -6px rgba(62, 39, 35, 0.01);
+        }
+
+        .cafe-input {
+            background-color: #F8F5F0;
+            border: 1px solid #D7CCC8;
+            color: #4E342E;
+            transition: all 0.2s ease;
+        }
+        
+        .cafe-input:focus {
+            outline: none;
+            border-color: #A1887F;
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(161, 136, 127, 0.1);
+        }
+
+        .btn-primary {
+            background-color: #5D4037;
+            color: #FDFBF7;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(93, 64, 55, 0.1);
+        }
+        
+        .btn-primary:hover {
+            background-color: #4E342E;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px -2px rgba(93, 64, 55, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #FDFBF7;
+            color: #5D4037;
+            border: 1px solid #D7CCC8;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #F8F5F0;
+            border-color: #BCAAA4;
+        }
+
+        .btn-danger {
+            color: #D32F2F;
+            background-color: #FFEBEE;
+            border: 1px solid #FFCDD2;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-danger:hover {
+            background-color: #FFCDD2;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center p-4 sm:p-8">
+
+    <header class="w-full max-w-4xl flex justify-between items-end mb-8 border-b border-[#D7CCC8] pb-4">
+        <div>
+            <h1 class="text-3xl sm:text-5xl font-bold text-[#3E2723] serif-font tracking-tight">Deck Builder</h1>
+            <p class="text-sm sm:text-base text-[#8D6E63] mt-2 italic">The secret authoring tool for Café Convo menus</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="document.getElementById('file-upload').click()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Import & Decrypt
+            </button>
+            <input type="file" id="file-upload" accept=".csv" class="hidden" onchange="importCSV(event)">
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl">
+        
+        <div class="bg-[#EFEBE9] border border-[#D7CCC8] p-4 rounded-lg mb-8 flex gap-4 items-start">
+            <div class="text-2xl mt-1">🔒</div>
+            <div>
+                <h3 class="text-[#4E342E] font-bold">How this works</h3>
+                <p class="text-sm text-[#5D4037] mt-1">Write your questions in plain English below. When you click Export, this tool will scramble all the text using a Caesar cipher (Shift +5). The students will only see gibberish if they open the file directly!</p>
+            </div>
+        </div>
+
+        <div id="cards-container" class="flex flex-col gap-6 mb-8">
+            <!-- Cards injected here via JS -->
+        </div>
+
+        <div class="flex justify-between items-center mb-16 border-t border-[#D7CCC8] pt-6">
+            <button onclick="addCard()" class="btn-secondary px-6 py-3 rounded-lg font-bold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add Another Topic
+            </button>
+
+            <button onclick="exportCSV()" class="btn-primary px-8 py-4 rounded-xl text-lg font-bold flex items-center gap-2 shadow-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                Export Encrypted Menu (CSV)
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let cardsData = [];
+
+        // ENCRYPTION: Shift +5 (Forward)
+        function encryptText(text, shift = 5) {
+            if (!text) return "";
+            return text.replace(/[a-zA-Z]/g, function(char) {
+                const base = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - base + shift) % 26) + base);
+            });
+        }
+
+        // DECRYPTION: Shift -5 (Backward) - For importing previous work
+        function decryptText(text, shift = 5) {
+            if (!text) return "";
+            const shiftAmount = (26 - (shift % 26)) % 26;
+            return text.replace(/[a-zA-Z]/g, function(char) {
+                const base = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - base + shiftAmount) % 26) + base);
+            });
+        }
+
+        // CSV Escaping: Safely wrap text in quotes if it has commas or quotes
+        function escapeCSV(field) {
+            if (field === undefined || field === null) return '';
+            let str = String(field);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+
+        function addCard(main = "", f1 = "", f2 = "", f3 = "") {
+            const cardId = Date.now() + Math.random().toString(36).substr(2, 9);
+            const index = cardsData.length;
+            
+            cardsData.push({ id: cardId, main, f1, f2, f3 });
+            renderCards();
+        }
+
+        function removeCard(id) {
+            if (cardsData.length <= 1) {
+                alert("You need at least one topic on the menu.");
+                return;
+            }
+            if(confirm("Are you sure you want to delete this topic?")) {
+                cardsData = cardsData.filter(c => c.id !== id);
+                renderCards();
+            }
+        }
+
+        function updateData(id, field, value) {
+            const card = cardsData.find(c => c.id === id);
+            if (card) {
+                card[field] = value;
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            cardsData.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'cafe-card p-6 sm:p-8 rounded-xl relative group';
+                
+                cardEl.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-[#A1887F] text-sm uppercase tracking-widest font-bold">Topic #${index + 1}</h3>
+                        <button onclick="removeCard('${card.id}')" class="btn-danger px-3 py-1.5 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Topic">
+                            Remove
+                        </button>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="block text-[#5D4037] mb-1.5 font-semibold text-sm">Main Question / Discussion Prompt</label>
+                        <textarea rows="2" 
+                                  onchange="updateData('${card.id}', 'main', this.value)" 
+                                  class="cafe-input w-full px-4 py-3 rounded-lg font-medium resize-y" 
+                                  placeholder="e.g., Is a hotdog a sandwich?">${card.main}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-[#EAE3D9] pt-5">
+                        <div>
+                            <label class="block text-[#8D6E63] mb-1.5 font-medium text-xs uppercase tracking-wider">Follow-Up 1</label>
+                            <input type="text" 
+                                   onchange="updateData('${card.id}', 'f1', this.value)" 
+                                   class="cafe-input w-full px-3 py-2 rounded-md text-sm" 
+                                   value="${card.f1}"
+                                   placeholder="Dig deeper...">
+                        </div>
+                        <div>
+                            <label class="block text-[#8D6E63] mb-1.5 font-medium text-xs uppercase tracking-wider">Follow-Up 2</label>
+                            <input type="text" 
+                                   onchange="updateData('${card.id}', 'f2', this.value)" 
+                                   class="cafe-input w-full px-3 py-2 rounded-md text-sm" 
+                                   value="${card.f2}"
+                                   placeholder="Challenge their view...">
+                        </div>
+                        <div>
+                            <label class="block text-[#8D6E63] mb-1.5 font-medium text-xs uppercase tracking-wider">Follow-Up 3</label>
+                            <input type="text" 
+                                   onchange="updateData('${card.id}', 'f3', this.value)" 
+                                   class="cafe-input w-full px-3 py-2 rounded-md text-sm" 
+                                   value="${card.f3}"
+                                   placeholder="Ask for an example...">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        function exportCSV() {
+            // Check for empty main questions
+            const emptyTopics = cardsData.filter(c => !c.main.trim());
+            if (emptyTopics.length > 0) {
+                if(!confirm(`You have ${emptyTopics.length} topic(s) with an empty Main Question. Export anyway?`)) {
+                    return;
+                }
+            }
+
+            // Headers are also encrypted so the CSV reveals absolutely nothing easily
+            let csvContent = "";
+            const headers = ["Main Question", "Follow-up 1", "Follow-up 2", "Follow-up 3"];
+            
+            // Build the header row
+            const encryptedHeaders = headers.map(h => escapeCSV(encryptText(h))).join(",");
+            csvContent += encryptedHeaders + "\r\n";
+
+            // Build the data rows
+            cardsData.forEach(card => {
+                // Ensure we don't save completely empty objects
+                if(!card.main.trim() && !card.f1.trim() && !card.f2.trim() && !card.f3.trim()) return;
+
+                const row = [
+                    escapeCSV(encryptText(card.main)),
+                    escapeCSV(encryptText(card.f1)),
+                    escapeCSV(encryptText(card.f2)),
+                    escapeCSV(encryptText(card.f3))
+                ];
+                csvContent += row.join(",") + "\r\n";
+            });
+
+            // Trigger file download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            
+            // Format today's date for the filename
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `cafe-convo-encrypted-${dateStr}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Re-using the robust CSV parser from the main game to read previously saved files
+        function parseCSV(text) {
+            let result = [];
+            let row = [];
+            let cur = '';
+            let inQuote = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+                
+                if (char === '"' && inQuote && nextChar === '"') {
+                    cur += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    row.push(cur);
+                    cur = '';
+                } else if ((char === '\n' || char === '\r') && !inQuote) {
+                    if (char === '\r' && nextChar === '\n') i++; 
+                    row.push(cur);
+                    if (row.some(cell => cell.trim() !== '')) { result.push(row); }
+                    row = [];
+                    cur = '';
+                } else {
+                    cur += char;
+                }
+            }
+            row.push(cur);
+            if (row.some(cell => cell.trim() !== '')) { result.push(row); }
+            return result;
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const rawText = e.target.result;
+                    
+                    // Decrypt the entire text block back to plain English
+                    const decryptedText = decryptText(rawText);
+                    
+                    // Parse the CSV
+                    const rows = parseCSV(decryptedText);
+                    
+                    if(rows.length < 2) {
+                        alert("This file seems empty or invalid.");
+                        return;
+                    }
+
+                    // Ask before overwriting current unsaved work
+                    if(cardsData.length > 1 || cardsData[0].main.trim() !== "") {
+                        if(!confirm("Importing this file will overwrite your current unsaved topics. Continue?")) {
+                            event.target.value = ''; // Reset input
+                            return;
+                        }
+                    }
+
+                    cardsData = []; // Clear current
+
+                    // Skip row 0 (headers)
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row.length > 0 && row.some(cell => cell.trim() !== '')) {
+                            addCard(
+                                row[0] || "",
+                                row[1] || "",
+                                row[2] || "",
+                                row[3] || ""
+                            );
+                        }
+                    }
+
+                    // Reset the file input so the same file can be loaded again if needed
+                    event.target.value = '';
+
+                } catch(err) {
+                    alert("Error reading file. Make sure it's a CSV generated by this tool.");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize with one blank card
+        window.onload = () => {
+            addCard();
+        };
+    </script>
+</body>
+</html>
