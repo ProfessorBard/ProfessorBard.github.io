@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dialectic Kombat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --neon-cyan: #05f3ff;
+    --neon-magenta: #ff2bd6;
+    --neon-yellow: #f6ff2b;
+    --neon-green: #39ff8f;
+    --bg-dark: #0a0b1e;
+    --panel-dark: #14172f;
+  }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #1b1040 0%, var(--bg-dark) 60%),
+                repeating-linear-gradient(0deg, rgba(5,243,255,0.05) 0 1px, transparent 1px 40px),
+                repeating-linear-gradient(90deg, rgba(5,243,255,0.05) 0 1px, transparent 1px 40px);
+    margin: 0;
+    padding: 20px;
+    color: #e8f9ff;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 0 0 16px;
+    font-weight: 900;
+    font-size: 2.2rem;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-magenta);
+  }
+
+  #question-box {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 16px;
+    border: 2px solid var(--neon-magenta);
+    border-radius: 8px;
+    background: var(--panel-dark);
+    color: var(--neon-yellow);
+    box-shadow: 0 0 10px rgba(255,43,214,0.6), inset 0 0 10px rgba(255,43,214,0.2);
+    margin-bottom: 16px;
+  }
+  #question-box::placeholder { color: #7a7fa0; }
+
+  #toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel-dark);
+    border: 1px solid rgba(5,243,255,0.4);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 12px rgba(5,243,255,0.25);
+  }
+
+  #toolbar button, #toolbar label.file-btn {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 2px solid var(--neon-cyan);
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 6px var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(5,243,255,0.4);
+    transition: all 0.15s ease;
+  }
+
+  #toolbar button:hover, #toolbar label.file-btn:hover {
+    background-color: var(--neon-cyan);
+    color: #06121a;
+    text-shadow: none;
+    box-shadow: 0 0 16px var(--neon-cyan);
+  }
+
+  #toolbar button.danger {
+    border-color: var(--neon-magenta);
+    color: var(--neon-magenta);
+    text-shadow: 0 0 6px var(--neon-magenta);
+    box-shadow: 0 0 8px rgba(255,43,214,0.4);
+  }
+  #toolbar button.danger:hover {
+    background-color: var(--neon-magenta);
+    color: #1a0612;
+    box-shadow: 0 0 16px var(--neon-magenta);
+  }
+
+  #ultra-btn {
+    border-color: var(--neon-yellow) !important;
+    color: var(--neon-yellow) !important;
+    text-shadow: 0 0 6px var(--neon-yellow) !important;
+    box-shadow: 0 0 8px rgba(246,255,43,0.4) !important;
+  }
+  #ultra-btn:hover, #ultra-btn.active {
+    background-color: var(--neon-yellow) !important;
+    color: #1a1706 !important;
+    box-shadow: 0 0 20px var(--neon-yellow) !important;
+  }
+
+  #csv-input { display: none; }
+
+  /* --- ULTRA MODE: points pool box, hidden unless ultra mode is active --- */
+  #ultra-pool-panel {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--panel-dark);
+    border: 2px solid var(--neon-green);
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 18px rgba(57,255,143,0.5), inset 0 0 20px rgba(57,255,143,0.08);
+  }
+
+  body.ultra-mode #ultra-pool-panel { display: flex; }
+
+  #ultra-pool-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #8d93c2;
+    text-transform: uppercase;
+  }
+
+  #ultra-pool-value {
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green), 0 0 24px var(--neon-green);
+  }
+
+  /* --- LAYOUT: leaderboard on the left, roster cards on the right (only the roster scrolls) --- */
+  #layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    flex: 1;
+    min-height: 0;
+  }
+
+  #leaderboard-panel {
+    flex: 1;
+    min-width: 280px;
+    max-width: 380px;
+    background: var(--panel-dark);
+    border: 2px solid var(--neon-yellow);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 0 18px rgba(246,255,43,0.4), inset 0 0 20px rgba(246,255,43,0.05);
+  }
+
+  #roster-panel {
+    flex: 3;
+    min-width: 320px;
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  #leaderboard-panel h2 {
+    margin: 0 0 12px;
+    text-align: center;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow);
+    letter-spacing: 2px;
+    font-size: 1.3rem;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .leaderboard-table th, .leaderboard-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .leaderboard-table th {
+    color: #8d93c2;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .rank-col { width: 34px; color: var(--neon-cyan); font-weight: 700; font-size: 1.2rem; }
+  .lb-name { font-size: 1.4rem; font-weight: 800; }
+  .score-col { text-align: right; font-weight: 700; font-size: 1.3rem; color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
+
+  .leaderboard-table tr.rank-1 .rank-col { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+  .leaderboard-table tr.rank-2 .rank-col { color: #d8d8ff; text-shadow: 0 0 6px #d8d8ff; }
+  .leaderboard-table tr.rank-3 .rank-col { color: #ff9a4d; text-shadow: 0 0 6px #ff9a4d; }
+
+  #leaderboard-note {
+    font-size: 0.75rem;
+    color: #8d93c2;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  #roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+
+  .student-card {
+    position: relative;
+    background: var(--panel-dark);
+    border: 2px solid var(--neon-cyan);
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 0 10px rgba(5,243,255,0.3);
+    transition: transform 0.1s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  }
+
+  .student-card:hover {
+    box-shadow: 0 0 20px rgba(5,243,255,0.7);
+  }
+
+  .student-card:active {
+    transform: scale(0.96);
+  }
+
+  .student-card.flash {
+    background-color: rgba(57,255,143,0.25);
+    box-shadow: 0 0 24px var(--neon-green);
+  }
+
+  .student-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    word-break: break-word;
+    color: #e8f9ff;
+  }
+
+  .student-points {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--neon-magenta);
+    text-shadow: 0 0 10px var(--neon-magenta);
+  }
+
+  .minus-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    line-height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--neon-magenta);
+    background-color: transparent;
+    color: var(--neon-magenta);
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .minus-btn:hover {
+    background-color: var(--neon-magenta);
+    color: #1a0612;
+  }
+
+  #empty-message {
+    text-align: center;
+    color: #8d93c2;
+    padding: 40px;
+    font-size: 1.1rem;
+  }
+
+  /* --- ULTRA MODE: placeholder intensified visual theme (behavior TBD) --- */
+  body.ultra-mode h1,
+  body.ultra-mode #leaderboard-panel h2 {
+    animation: ultra-pulse 1.2s ease-in-out infinite;
+  }
+
+  body.ultra-mode .student-card {
+    animation: ultra-border 2.5s linear infinite;
+  }
+
+  @keyframes ultra-pulse {
+    0%, 100% { text-shadow: 0 0 8px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-magenta); }
+    50% { text-shadow: 0 0 16px var(--neon-yellow), 0 0 32px var(--neon-magenta), 0 0 60px var(--neon-cyan); }
+  }
+
+  @keyframes ultra-border {
+    0%   { border-color: var(--neon-cyan); }
+    33%  { border-color: var(--neon-magenta); }
+    66%  { border-color: var(--neon-yellow); }
+    100% { border-color: var(--neon-cyan); }
+  }
+
+  @media (max-width: 800px) {
+    #layout { flex-direction: column; }
+    #leaderboard-panel { max-width: none; width: 100%; }
+    #roster-panel { height: auto; overflow-y: visible; }
+    #roster-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+  <h1>Dialectic Kombat</h1>
+
+  <input id="question-box" type="text" placeholder="Type today's question here...">
+
+  <div id="toolbar">
+    <label class="file-btn" for="csv-input">Upload Roster (CSV)</label>
+    <input id="csv-input" type="file" accept=".csv,text/csv">
+    <button id="reset-btn">Reset Points</button>
+    <button id="download-btn">Download Results (CSV)</button>
+    <button id="ultra-btn">Ultra Mode</button>
+  </div>
+
+  <div id="ultra-pool-panel">
+    <div id="ultra-pool-label">Points Up For Grabs</div>
+    <div id="ultra-pool-value">100</div>
+  </div>
+
+  <div id="layout">
+    <div id="leaderboard-panel">
+      <h2>&#127942; Leaderboard</h2>
+      <table class="leaderboard-table">
+        <thead><tr><th class="rank-col">#</th><th>Name</th><th class="score-col">Pts</th></tr></thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+      <div id="leaderboard-note"></div>
+    </div>
+
+    <div id="roster-panel">
+      <div id="roster-grid"></div>
+      <div id="empty-message">Upload a CSV of student names to get started.</div>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_CAP = 10;
+
+  let roster = []; // { name, points }
+
+  const rosterGrid = document.getElementById('roster-grid');
+  const emptyMessage = document.getElementById('empty-message');
+  const leaderboardBody = document.getElementById('leaderboard-body');
+  const leaderboardNote = document.getElementById('leaderboard-note');
+
+  document.getElementById('csv-input').addEventListener('change', handleCsvUpload);
+  document.getElementById('reset-btn').addEventListener('click', resetPoints);
+  document.getElementById('download-btn').addEventListener('click', downloadResults);
+  document.getElementById('ultra-btn').addEventListener('click', toggleUltraMode);
+
+  // Ultra Mode: a decaying points pool is up for grabs; clicking a student awards whatever is left, then the pool resets.
+  const ULTRA_START = 500;
+  const ULTRA_TICK_MS = 150;
+  const ULTRA_DECREMENT = 1;
+  const ULTRA_MIN = 1;
+  let ultraPool = ULTRA_START;
+  let ultraTimerId = null;
+  const ultraPoolValueEl = document.getElementById('ultra-pool-value');
+
+  function toggleUltraMode() {
+    const active = document.body.classList.toggle('ultra-mode');
+    document.getElementById('ultra-btn').classList.toggle('active', active);
+    if (active) startUltraPool(); else stopUltraPool();
+  }
+
+  function startUltraPool() {
+    ultraPool = ULTRA_START;
+    renderUltraPool();
+    clearInterval(ultraTimerId);
+    ultraTimerId = setInterval(() => {
+      ultraPool = Math.max(ULTRA_MIN, ultraPool - ULTRA_DECREMENT);
+      renderUltraPool();
+    }, ULTRA_TICK_MS);
+  }
+
+  function stopUltraPool() {
+    clearInterval(ultraTimerId);
+    ultraTimerId = null;
+  }
+
+  function renderUltraPool() {
+    ultraPoolValueEl.textContent = ultraPool;
+  }
+
+  function handleCsvUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const hasPoints = roster.some(s => s.points !== 0);
+    if (hasPoints && !confirm('Uploading a new roster will discard the current points. Continue?')) {
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      roster = parseCsv(e.target.result);
+      renderAll();
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // allow re-selecting the same file later
+  }
+
+  // Parses CSV respecting quoted fields (commas/newlines inside quotes), per RFC 4180.
+  function parseCsvRows(text) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (inQuotes) {
+        if (char === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else inQuotes = false;
+        } else {
+          field += char;
+        }
+      } else if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        row.push(field); field = '';
+      } else if (char === '\n') {
+        row.push(field); rows.push(row); row = []; field = '';
+      } else if (char !== '\r') {
+        field += char;
+      }
+    }
+    if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function parseCsv(text) {
+    return parseCsvRows(text)
+      .map(row => (row[0] || '').trim())
+      .filter(name => name.length > 0 && !/^name$/i.test(name))
+      .map(name => ({ name, points: 0 }));
+  }
+
+  function resetPoints() {
+    if (roster.length === 0) return;
+    const hasPoints = roster.some(s => s.points !== 0);
+    if (hasPoints && !confirm('Reset all points to 0?')) return;
+    roster.forEach(s => s.points = 0);
+    renderAll();
+  }
+
+  function downloadResults() {
+    if (roster.length === 0) {
+      alert('No roster loaded yet.');
+      return;
+    }
+    const rows = ['Name,Points'];
+    [...roster]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(s => rows.push(`${s.name},${s.points}`));
+
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `class-points-${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function renderAll() {
+    renderRoster();
+    renderLeaderboard();
+  }
+
+  function renderRoster() {
+    rosterGrid.innerHTML = '';
+    emptyMessage.style.display = roster.length === 0 ? 'block' : 'none';
+
+    [...roster]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(student => {
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.innerHTML = `
+          <button class="minus-btn" title="Remove a point">&minus;</button>
+          <div class="student-name">${escapeHtml(student.name)}</div>
+          <div class="student-points">${student.points}</div>
+        `;
+
+        card.addEventListener('click', () => {
+          if (document.body.classList.contains('ultra-mode')) {
+            student.points += ultraPool;
+            startUltraPool(); // award resets the pool and restarts its countdown
+          } else {
+            student.points += 1;
+          }
+          flashCard(card);
+          renderAll();
+        });
+
+        card.querySelector('.minus-btn').addEventListener('click', ev => {
+          ev.stopPropagation();
+          student.points = Math.max(0, student.points - 1);
+          renderAll();
+        });
+
+        rosterGrid.appendChild(card);
+      });
+  }
+
+  function flashCard(card) {
+    card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 300);
+  }
+
+  function renderLeaderboard() {
+    leaderboardBody.innerHTML = '';
+
+    const ranked = [...roster].sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+    const shown = ranked.slice(0, LEADERBOARD_CAP);
+
+    let rank = 0;
+    let lastPoints = null;
+    shown.forEach((student, i) => {
+      if (student.points !== lastPoints) {
+        rank = i + 1;
+        lastPoints = student.points;
+      }
+      const row = document.createElement('tr');
+      if (rank <= 3) row.className = `rank-${rank}`;
+      row.innerHTML = `
+        <td class="rank-col">${rank}</td>
+        <td class="lb-name">${escapeHtml(student.name)}</td>
+        <td class="score-col">${student.points}</td>
+      `;
+      leaderboardBody.appendChild(row);
+    });
+
+    leaderboardNote.textContent = ranked.length > LEADERBOARD_CAP
+      ? `Showing top ${LEADERBOARD_CAP} of ${ranked.length} students`
+      : '';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  renderAll();
+</script>
+
+</body>
+</html>
