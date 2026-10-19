@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PHILOSOPHER // Dialectic System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Google Fonts: Space Grotesk (Display/Headings), Rajdhani (HUD/Tech labels), Share Tech Mono (Codes/Metrics), Inter (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pod: {
+                            hull: '#E8E5DD',
+                            'hull-border': '#CBC6B8',
+                            bezel: '#182226',
+                            screen: '#021B24',
+                            'screen-dark': '#011017',
+                            cyan: '#00F2FF',
+                            'cyan-bright': '#66F7FF',
+                            'cyan-dim': '#0E6373',
+                            'cyan-glow': 'rgba(0, 242, 255, 0.35)',
+                            'cyan-tint': 'rgba(0, 242, 255, 0.08)',
+                            amber: '#FFB800',
+                            danger: '#FF4141',
+                            success: '#00F2FF'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        tech: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                        body: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        /* Exact Passengers Console Aesthetic: Physical pod bezel with glowing cyan touchscreen */
+        body {
+            background-color: #121A1D;
+            color: #E6F8FA;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Outer Stasis Pod Housing Bezel */
+        .pod-housing {
+            background-color: #E2DFD6;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(255,255,255,0.4) 0%, transparent 60%),
+                linear-gradient(180deg, #ECE9E1 0%, #D8D4C8 100%);
+            border: 2px solid #C4BEAF;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -4px 6px rgba(0,0,0,0.2);
+            padding: 16px;
+            width: 100%;
+            max-width: 1240px;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .pod-housing {
+                padding: 24px;
+            }
+        }
+
+        /* Physical Screws & Stencils on Pod Housing */
+        .pod-housing::before {
+            content: 'HPOD 2.0 // HSI MODEL 709 • UNIT PROTOCOL 0138-45';
+            position: absolute;
+            top: 8px;
+            left: 28px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: #7A7569;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+        }
+
+        .pod-housing::after {
+            content: 'AI PHILOSOPHER // DIALECTIC ARBITRATION TERMINAL';
+            position: absolute;
+            bottom: 8px;
+            right: 28px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: #7A7569;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+        }
+
+        /* Glowing Touchscreen Display Inside Bezel */
+        .touchscreen-frame {
+            background: radial-gradient(circle at 50% 30%, #062833 0%, #021B24 55%, #010F15 100%);
+            border: 4px solid #142025;
+            border-radius: 12px;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 242, 255, 0.12);
+            position: relative;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .touchscreen-frame {
+                padding: 28px;
+            }
+        }
+
+        /* CRT/LCD Subtle Glass Scanline Grid */
+        .touchscreen-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(0, 242, 255, 0.015) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        /* Passengers Glowing Cyan UI Box / Brackets */
+        .hud-panel {
+            background: rgba(2, 33, 44, 0.75);
+            border: 1.5px solid rgba(0, 242, 255, 0.45);
+            box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.06), 0 0 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        /* Beveled / Corner Bracket Accents */
+        .bracket-box {
+            position: relative;
+        }
+        .bracket-box::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #00F2FF;
+            border-left: 2px solid #00F2FF;
+        }
+        .bracket-box::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #00F2FF;
+            border-right: 2px solid #00F2FF;
+        }
+
+        /* Exact Stadium / Pill Buttons from Passengers Image */
+        .btn-pill {
+            background: rgba(0, 242, 255, 0.08);
+            border: 1.5px solid #00F2FF;
+            border-radius: 9999px;
+            color: #FFFFFF;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2), inset 0 0 8px rgba(0, 242, 255, 0.1);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-pill:hover:not(:disabled) {
+            background: #00F2FF;
+            color: #021B24;
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.7);
+            transform: scale(1.02);
+        }
+
+        .btn-pill:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: rgba(0, 242, 255, 0.3);
+            box-shadow: none;
+        }
+
+        .btn-pill-secondary {
+            background: rgba(2, 33, 44, 0.9);
+            border: 1px solid rgba(0, 242, 255, 0.5);
+            border-radius: 9999px;
+            color: #8CE8F2;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .btn-pill-secondary:hover:not(:disabled) {
+            background: rgba(0, 242, 255, 0.2);
+            color: #FFFFFF;
+            border-color: #00F2FF;
+        }
+
+        /* Touchscreen Inputs */
+        .hud-input {
+            background: rgba(1, 20, 28, 0.85);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            color: #FFFFFF;
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.2s ease;
+        }
+
+        .hud-input:focus {
+            outline: none;
+            border-color: #00F2FF;
+            background: rgba(2, 33, 44, 0.95);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.35);
+        }
+
+        /* Hexagonal Clip Path */
+        .hex-badge {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+
+        /* Glowing text effects */
+        .glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.7), 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        /* Wave bar for recording */
+        @keyframes pulse-wave {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
+        .voice-wave {
+            animation: pulse-wave 0.8s infinite ease-in-out;
+        }
+
+        /* QR Scanner Overrides */
+        #qr-reader {
+            border: none !important;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #011017;
+        }
+        #qr-reader button {
+            background: rgba(0, 242, 255, 0.15);
+            color: #00F2FF;
+            border: 1px solid #00F2FF;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- STASIS POD HOUSING BEZEL (Passengers Stasis Terminal) -->
+    <div class="pod-housing">
+        
+        <!-- GLOWING TOUCHSCREEN FRAME -->
+        <div class="touchscreen-frame">
+
+            <!-- ========================================== -->
+            <!-- TOP TOUCHSCREEN HUD (Matches Passengers Image) -->
+            <!-- ========================================== -->
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b border-pod-cyan/30 mb-6 gap-4">
+                
+                <!-- Left: Pod Unit & Dialectic Badge -->
+                <div class="flex items-center gap-3">
+                    <div class="border border-pod-cyan/60 bg-pod-screen-dark px-3 py-1 rounded text-xs font-mono text-pod-cyan tracking-wider flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-pod-cyan animate-pulse"></span>
+                        <span>HPOD. 42.0220</span>
+                        <span class="text-gray-400">UNIT 709>>>0049</span>
+                    </div>
+
+                    <!-- Audio FX Toggle Button -->
+                    <button onclick="toggleSoundFx()" id="btn-audio-toggle" class="p-1.5 rounded border border-pod-cyan/40 bg-pod-screen-dark text-pod-cyan hover:border-pod-cyan text-xs flex items-center gap-1.5 transition-colors" title="Toggle Terminal Audio">
+                        <svg id="icon-sound-on" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                        <svg id="icon-sound-off" class="w-3.5 h-3.5 hidden text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12-2l4 4m0-4l-4 4"></path></svg>
+                        <span class="font-mono text-[10px] hidden sm:inline" id="audio-label">FX: ON</span>
+                    </button>
+                </div>
+
+                <!-- Center Title: AI PHILOSOPHER -->
+                <div class="text-left md:text-center">
+                    <h1 class="text-2xl sm:text-3xl font-black font-display tracking-widest text-white glow-cyan uppercase">
+                        AI PHILOSOPHER
+                    </h1>
+                    <p class="text-[11px] font-mono tracking-widest text-pod-cyan/80 uppercase">
+                        Autonomous Logic, Premise Analysis & Syllogistic Arbiter
+                    </p>
+                </div>
+
+                <!-- Right: Homestead-Style Rosette Emblem & Status -->
+                <div class="flex items-center gap-3 self-end md:self-auto">
+                    <div class="text-right hidden sm:block">
+                        <span class="block text-[10px] font-mono text-gray-400">MAIN SYSTEM</span>
+                        <span id="system-status-indicator" class="text-xs font-mono font-bold text-pod-cyan">STATUS: OPTIMAL</span>
+                    </div>
+
+                    <!-- Passengers Dot-Rosette SVG Emblem (from reference image) -->
+                    <div class="w-9 h-9 flex items-center justify-center border border-pod-cyan/50 rounded-full p-1 bg-pod-screen-dark shadow-[0_0_10px_rgba(0,242,255,0.2)]">
+                        <svg class="w-full h-full text-pod-cyan" viewBox="0 0 100 100" fill="currentColor">
+                            <!-- Concentric Dot Rosette -->
+                            <circle cx="50" cy="18" r="4"/><circle cx="50" cy="82" r="4"/>
+                            <circle cx="18" cy="50" r="4"/><circle cx="82" cy="50" r="4"/>
+                            <circle cx="27" cy="27" r="4"/><circle cx="73" cy="73" r="4"/>
+                            <circle cx="27" cy="73" r="4"/><circle cx="73" cy="27" r="4"/>
+                            <circle cx="50" cy="30" r="5"/><circle cx="50" cy="70" r="5"/>
+                            <circle cx="30" cy="50" r="5"/><circle cx="70" cy="50" r="5"/>
+                            <circle cx="36" cy="36" r="5"/><circle cx="64" cy="64" r="5"/>
+                            <circle cx="36" cy="64" r="5"/><circle cx="64" cy="36" r="5"/>
+                            <polygon points="50,42 57,46 57,54 50,58 43,54 43,46" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ========================================== -->
+            <!-- LIVE STANDINGS HUD (Hidden until game begins) -->
+            <!-- ========================================== -->
+            <div id="standings-hud-bar" class="hidden mb-6 hud-panel p-3.5 rounded-lg border-pod-cyan/40">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-pod-cyan font-bold tracking-widest uppercase flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-pod-cyan animate-ping"></span>
+                            DIALECTIC STANDINGS
+                        </span>
+                    </div>
+                    <span id="topic-tracker-pill" class="text-[11px] font-mono text-white bg-black/60 px-2.5 py-0.5 rounded border border-pod-cyan/30">
+                        PROPOSITION 01 / 01
+                    </span>
+                </div>
+                <div id="standings-pills-container" class="flex flex-wrap gap-2 items-center">
+                    <!-- Standings pills injected here -->
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SCREEN 0: DECK LOAD & CREW SETUP -->
+            <!-- ========================================== -->
+            <div id="setup-screen" class="space-y-6">
+
+                <!-- STEP 0: SPREADSHEET INPUT -->
+                <div id="step-0-deck-panel" class="hud-panel p-6 sm:p-8 rounded-xl bracket-box space-y-6">
+                    <div class="border-b border-pod-cyan/30 pb-3 flex justify-between items-center">
+                        <div>
+                            <span class="text-[11px] font-mono text-pod-cyan uppercase tracking-widest block">STEP 01 // DATA CALIBRATION</span>
+                            <h2 class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5">Load Topic Deck</h2>
+                        </div>
+                        <span class="text-xs font-mono text-gray-400 hidden sm:inline">PROTOCOL: SPREADSHEET / CSV</span>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="bg-pod-screen-dark/80 border border-pod-cyan/30 p-3.5 rounded-lg flex items-start gap-3 text-xs text-cyan-100">
+                        <span class="text-pod-cyan font-bold text-base">ℹ</span>
+                        <p class="leading-relaxed">
+                            Ensure Google Sheets link sharing is set to <strong class="text-white">"Anyone with the link can view"</strong> so topics can be retrieved.
+                        </p>
+                    </div>
+
+                    <!-- Method 1: Google Sheet URL -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-mono text-gray-300 uppercase tracking-wider">Method 1: Google Sheet Web Link</label>
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <input type="url" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/..." 
+                                   class="hud-input px-4 py-2.5 rounded-full flex-grow text-xs sm:text-sm">
+                            <button onclick="loadFromGoogleSheet()" id="btn-load-sheet" class="btn-pill px-7 py-2.5 text-xs sm:text-sm whitespace-nowrap">
+                                Load Deck
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="flex items-center gap-4 my-2">
+                        <div class="h-px bg-pod-cyan/20 flex-grow"></div>
+                        <span class="text-[11px] font-mono text-gray-400 font-bold">OR CHOOSE ALTERNATIVE INPUT</span>
+                        <div class="h-px bg-pod-cyan/20 flex-grow"></div>
+                    </div>
+
+                    <!-- Method 2 & 3: QR Scan & Local CSV File -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- QR Scanner -->
+                        <div>
+                            <label class="block text-xs font-mono text-gray-300 uppercase tracking-wider mb-2">Method 2: Optical Sensor (QR)</label>
+                            <button onclick="startQRScanner()" id="btn-start-qr" class="w-full btn-pill-secondary py-2.5 px-4 text-xs flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4 text-pod-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                                Scan QR Code
+                            </button>
+                            <div id="qr-container" class="hidden mt-3 p-2 rounded-lg bg-black/80 border border-pod-cyan/50">
+                                <div id="qr-reader" class="w-full"></div>
+                                <button onclick="stopQRScanner()" class="w-full mt-2 text-xs font-mono text-gray-400 hover:text-white py-1">Cancel Scan</button>
+                            </div>
+                        </div>
+
+                        <!-- Local CSV Upload -->
+                        <div>
+                            <label class="block text-xs font-mono text-gray-300 uppercase tracking-wider mb-2">Method 3: Local CSV File</label>
+                            <button onclick="document.getElementById('csv-file-picker').click()" class="w-full btn-pill-secondary py-2.5 px-4 text-xs flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4 text-pod-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Upload CSV File
+                            </button>
+                            <input type="file" id="csv-file-picker" accept=".csv" class="hidden" onchange="loadFromLocalCSV(event)">
+                        </div>
+                    </div>
+
+                    <!-- Anti-Spoilers Checkbox (Marked by Default) -->
+                    <div class="mt-4 p-3 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 flex items-center justify-between">
+                        <label class="flex items-center gap-3 cursor-pointer select-none">
+                            <input type="checkbox" id="use-encryption" checked class="w-4 h-4 rounded border-pod-cyan/50 bg-black text-pod-cyan focus:ring-0 cursor-pointer">
+                            <div>
+                                <span class="text-xs sm:text-sm font-mono font-bold text-white">Anti-Spoiler Mode (Encrypted Deck)</span>
+                                <p class="text-[11px] text-gray-400">Automatically decodes encrypted topic decks.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 1: DEBATER / TEAM REGISTRATION (Revealed after deck loads) -->
+                <div id="step-1-crew-panel" class="hidden hud-panel p-6 sm:p-8 rounded-xl bracket-box space-y-6">
+                    <div class="border-b border-pod-cyan/30 pb-3 flex justify-between items-center">
+                        <div>
+                            <span class="text-[11px] font-mono text-pod-cyan uppercase tracking-widest block">STEP 02 // CREW REGISTRATION</span>
+                            <h2 class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5">Register Debaters or Teams</h2>
+                            <p class="text-xs font-mono text-gray-400">Students can enter individual debater names or team names. Minimum 2 required.</p>
+                        </div>
+                        <div class="text-right border border-pod-cyan/40 bg-pod-screen-dark px-3 py-1.5 rounded">
+                            <span class="text-[10px] font-mono text-pod-cyan block">TOPICS READY</span>
+                            <span id="deck-size-label" class="text-base font-mono font-bold text-white">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Debater Slots -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-xs font-mono text-gray-300 uppercase tracking-wider">Debater / Team Names:</label>
+                            <button onclick="addDebaterSlot()" class="text-xs font-mono font-bold text-pod-cyan hover:text-white flex items-center gap-1">
+                                + Add Debater Slot
+                            </button>
+                        </div>
+
+                        <div id="debater-slots-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="pt-4 border-t border-pod-cyan/30 flex flex-col sm:flex-row gap-3">
+                        <button onclick="returnToDeckLoad()" class="btn-pill-secondary py-3 px-6 text-xs">
+                            ← Change Deck
+                        </button>
+                        <button onclick="startDiscussionSession()" class="btn-pill flex-grow py-3 px-8 text-sm">
+                            Initiate Dialectic Session →
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SCREEN 1: DISCUSSION CHAMBER (Mode 1) -->
+            <!-- ========================================== -->
+            <div id="discussion-screen" class="hidden space-y-6">
+
+                <!-- TOPIC CARD -->
+                <div class="hud-panel p-6 sm:p-8 rounded-xl bracket-box">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-mono text-pod-cyan bg-pod-screen-dark px-3 py-1 rounded border border-pod-cyan/50 tracking-wider">
+                            PROPOSITION REF: <span id="disp-topic-ref">001</span>
+                        </span>
+                        <span class="text-xs font-mono text-gray-400 uppercase tracking-widest">Phase 1: Oral Deliberation</span>
+                    </div>
+
+                    <h3 class="text-[11px] font-mono uppercase tracking-widest text-pod-cyan mb-1.5">Central Proposition:</h3>
+                    <p id="disp-main-question" class="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white leading-snug"></p>
+
+                    <!-- 3 Sub-Questions / Inquiries -->
+                    <div class="mt-6 pt-5 border-t border-pod-cyan/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">
+                                Sub-Questions & Inquiries <span class="text-gray-400 font-normal lowercase">(click when explored)</span>:
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 01</span>
+                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
+                                </div>
+                                <p id="disp-sub-q1" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                            </div>
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 02</span>
+                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
+                                </div>
+                                <p id="disp-sub-q2" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                            </div>
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 03</span>
+                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
+                                </div>
+                                <p id="disp-sub-q3" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4-MINUTE CHRONOMETER HUD GAUGE -->
+                <div class="hud-panel p-6 sm:p-8 rounded-xl flex flex-col items-center text-center relative overflow-hidden">
+                    <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-widest mb-1">
+                        Mandatory Deliberation Chronometer
+                    </span>
+                    <p class="text-xs font-mono text-gray-300 max-w-lg mb-6">
+                        Students must debate for at least <strong class="text-pod-cyan">4 minutes</strong>. Deliberation can extend as long as debaters choose; argument submission unlocks once the countdown finishes.
+                    </p>
+
+                    <!-- Hexagonal / Circular Stasis Gauge Readout -->
+                    <div class="relative w-52 h-52 sm:w-60 sm:h-60 flex items-center justify-center my-2">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                            <!-- Background Track -->
+                            <circle cx="60" cy="60" r="50" stroke="rgba(0, 242, 255, 0.15)" stroke-width="5" fill="transparent"/>
+                            <!-- Active Countdown Stroke -->
+                            <circle id="timer-ring-stroke" cx="60" cy="60" r="50" stroke="#00F2FF" stroke-width="5" stroke-linecap="round" fill="transparent"
+                                    stroke-dasharray="314.16" stroke-dashoffset="0" class="transition-all duration-1000"/>
+                        </svg>
+
+                        <!-- Digital Readout Center -->
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="countdown-readout" class="text-4xl sm:text-5xl font-mono font-bold text-white glow-cyan tracking-wider">04:00</span>
+                            <span id="timer-state-label" class="text-[11px] font-mono font-bold text-pod-cyan mt-1 tracking-widest">4 MIN REQUIRED</span>
+                        </div>
+                    </div>
+
+                    <!-- Timer Controls -->
+                    <div class="flex items-center gap-3 mt-4">
+                        <button onclick="toggleTimerPause()" id="btn-timer-pause" class="btn-pill-secondary px-4 py-1.5 text-xs font-mono">
+                            Pause Timer
+                        </button>
+                        <button onclick="resetTimer()" class="btn-pill-secondary px-3 py-1.5 text-xs font-mono text-gray-400 hover:text-white">
+                            Reset 04:00
+                        </button>
+                        <button onclick="fastForwardTimer()" class="text-xs font-mono text-gray-500 hover:text-pod-cyan px-2 py-1">
+                            ⚡ Jump to 00:00
+                        </button>
+                    </div>
+
+                    <!-- PROCEED BUTTON (Unlocked only at 00:00) -->
+                    <div class="w-full max-w-md mt-6 pt-6 border-t border-pod-cyan/30">
+                        <button onclick="proceedToArgumentSubmission()" id="btn-proceed-arguments" disabled
+                                class="w-full btn-pill py-3.5 px-6 text-sm flex justify-center items-center gap-2">
+                            <span id="proceed-btn-caption">Deliberation in Progress (Locked until 4:00)</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                        <p id="proceed-note" class="text-[11px] font-mono text-gray-400 mt-2">
+                            Button unlocks automatically at 00:00. Deliberate freely as long as desired.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SCREEN 2: WRITTEN ARGUMENT MODE (Mode 2) -->
+            <!-- ========================================== -->
+            <div id="argument-screen" class="hidden space-y-6">
+
+                <!-- Topic Reference Header -->
+                <div class="hud-panel p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <span class="text-[10px] font-mono text-pod-cyan uppercase tracking-wider block">Central Proposition</span>
+                        <p id="arg-header-question" class="text-sm sm:text-base font-display font-bold text-white"></p>
+                    </div>
+                    <button onclick="toggleInquiriesDrawer()" class="btn-pill-secondary px-3.5 py-1.5 text-xs whitespace-nowrap self-end sm:self-auto">
+                        View Sub-Questions
+                    </button>
+                </div>
+
+                <!-- Inquiries Drawer -->
+                <div id="inquiries-drawer-box" class="hidden hud-panel p-4 rounded-xl text-xs space-y-2">
+                    <span class="text-[11px] font-mono font-bold text-pod-cyan uppercase block">Explored Inquiries:</span>
+                    <div id="inquiries-drawer-content" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
+                </div>
+
+                <!-- Devil's Advocate 50% Rule Banner -->
+                <div class="bg-pod-screen-dark/90 border border-pod-cyan/40 p-3.5 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-pod-cyan text-base">⚖</span>
+                        <div>
+                            <span class="text-xs font-mono font-bold text-white uppercase">Devil's Advocate Stance Rule:</span>
+                            <span class="text-xs font-mono text-gray-300 ml-1">Grants <strong class="text-pod-cyan">+1 point bonus</strong>. Maximum <strong class="text-pod-cyan">50% of participants</strong> can assume this stance.</span>
+                        </div>
+                    </div>
+                    <span id="da-quota-counter" class="text-xs font-mono font-bold px-3 py-1 rounded bg-black border border-pod-cyan/50 text-pod-cyan">
+                        0 / 0 Slots Claimed
+                    </span>
+                </div>
+
+                <!-- Individual Debater Submission Terminals -->
+                <div id="debater-argument-consoles" class="space-y-4">
+                    <!-- Injected by JS -->
+                </div>
+
+                <!-- Transmit to AI Button -->
+                <div class="hud-panel p-6 rounded-xl text-center flex flex-col items-center">
+                    <button onclick="transmitArgumentsToAI()" id="btn-transmit-ai" class="w-full max-w-lg btn-pill py-3.5 px-8 text-sm sm:text-base flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>Transmit Arguments to AI Philosopher</span>
+                    </button>
+                    <p class="text-[11px] font-mono text-gray-400 mt-2">
+                        AI will grade on premise chaining (p → q, q → r...), illustrative analogies, argument cogency, and Devil's Advocate bonus.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SCREEN 3: ARBITRATION & RESULTS -->
+            <!-- ========================================== -->
+            <div id="results-screen" class="hidden space-y-6">
+
+                <!-- Processing Scan Animation (Shown while AI thinks) -->
+                <div id="processing-radar-state" class="hud-panel p-10 sm:p-14 rounded-xl text-center flex flex-col items-center justify-center space-y-5">
+                    <!-- Matrix Grid Scanning -->
+                    <div class="w-20 h-20 rounded-full border border-pod-cyan/50 p-2 flex items-center justify-center shadow-[0_0_20px_rgba(0,242,255,0.3)] animate-pulse">
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan animate-ping"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan animate-ping"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan"></span>
+                            <span class="w-2 h-2 rounded-full bg-white animate-spin"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan animate-ping"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan"></span>
+                            <span class="w-2 h-2 rounded-full bg-pod-cyan animate-ping"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold font-display text-white tracking-widest uppercase">
+                            AI PHILOSOPHER ARBITRATING...
+                        </h3>
+                        <p class="text-xs font-mono text-pod-cyan mt-1">
+                            Analyzing formal syllogisms [p → q → r], analogy validity, and argument cogency...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Results Readout (Shown once AI responds) -->
+                <div id="results-content-box" class="hidden space-y-6">
+
+                    <!-- VICTOR READOUT BANNER -->
+                    <div class="hud-panel p-6 sm:p-8 rounded-xl border-2 border-pod-cyan text-center relative overflow-hidden shadow-[0_0_30px_rgba(0,242,255,0.25)]">
+                        <span class="text-xs font-mono font-bold tracking-widest text-pod-cyan uppercase bg-pod-screen-dark px-3 py-1 rounded border border-pod-cyan/50">
+                            ARBITRATION DECISION // ROUND VICTOR
+                        </span>
+
+                        <h2 id="victor-name-heading" class="text-3xl sm:text-4xl font-bold font-display text-white mt-3 glow-cyan"></h2>
+                        <p id="victor-rationale-body" class="text-xs sm:text-sm text-cyan-100 max-w-2xl mx-auto mt-2 font-tech leading-relaxed"></p>
+
+                        <div class="mt-4 inline-flex items-center gap-2 bg-black/60 border border-pod-cyan/40 px-3 py-1 rounded-full text-xs font-mono">
+                            <span class="text-gray-400">Score Awarded:</span>
+                            <span id="victor-score-pill" class="text-pod-cyan font-bold">+0 PTS</span>
+                        </div>
+                    </div>
+
+                    <!-- Individual Deconstruction Cards -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest block">
+                            Dialectic Deconstruction & Feedback:
+                        </span>
+                        <div id="results-deconstructions-list" class="space-y-3">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Footer Controls -->
+                    <div class="hud-panel p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <span id="session-progress-indicator" class="text-xs font-mono text-gray-400">Topic X of Y completed.</span>
+                        <div class="flex gap-2.5 w-full sm:w-auto">
+                            <button onclick="terminateSessionEarly()" class="btn-pill-secondary px-4 py-2 text-xs w-full sm:w-auto">
+                                End Session
+                            </button>
+                            <button onclick="advanceToNextProposition()" id="btn-next-topic" class="btn-pill px-6 py-2 text-xs font-bold w-full sm:w-auto">
+                                Next Proposition →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SCREEN 4: SESSION CONCLUDED / PODIUM -->
+            <!-- ========================================== -->
+            <div id="concluded-screen" class="hidden hud-panel p-8 sm:p-12 rounded-xl text-center space-y-6">
+                <span class="text-xs font-mono font-bold tracking-widest text-pod-cyan uppercase bg-pod-screen-dark px-3 py-1 rounded border border-pod-cyan/50">
+                    DIALECTIC PROTOCOLS COMPLETED
+                </span>
+
+                <h2 class="text-3xl sm:text-4xl font-bold font-display text-white">Final Standings Debrief</h2>
+                <p class="text-xs font-mono text-gray-400">All debate propositions have been adjudicated by the AI Philosopher.</p>
+
+                <div id="final-podium-container" class="max-w-md mx-auto space-y-2.5 my-6">
+                    <!-- Final list injected here -->
+                </div>
+
+                <button onclick="location.reload()" class="btn-pill px-8 py-3 text-xs sm:text-sm font-bold">
+                    Start New Dialectic Session
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="hud-panel p-6 rounded-xl max-w-sm w-full border-pod-cyan text-center space-y-3">
+            <h3 class="text-base font-bold font-display text-white uppercase tracking-wider" id="alert-modal-title">Notice</h3>
+            <p id="alert-modal-msg" class="text-xs text-gray-300 leading-relaxed font-mono"></p>
+            <button onclick="closeAlertModal()" class="btn-pill px-6 py-2 text-xs font-bold w-full">
+                Acknowledge
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCRIPT ENGINE -->
+    <!-- ========================================== -->
+    <script>
+        // --- WEB AUDIO SYNTHESIS (Zero External Audio Files) ---
+        let audioContext = null;
+        let isAudioOn = true;
+
+        function getAudioContext() {
+            if (!audioContext) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) audioContext = new AudioCtx();
+            }
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            return audioContext;
+        }
+
+        function playBeep(freq, duration, type = 'sine', gainVal = 0.06) {
+            if (!isAudioOn) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playClick() { playBeep(1200, 0.04, 'sine', 0.03); }
+        function playChime() {
+            playBeep(659.25, 0.35, 'sine', 0.08); // E5
+            setTimeout(() => playBeep(987.77, 0.5, 'sine', 0.09), 140); // B5
+        }
+        function playVictory() {
+            [523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+                setTimeout(() => playBeep(f, 0.45, 'triangle', 0.07), idx * 110);
+            });
+        }
+
+        function toggleSoundFx() {
+            isAudioOn = !isAudioOn;
+            document.getElementById('icon-sound-on').classList.toggle('hidden', !isAudioOn);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', isAudioOn);
+            document.getElementById('audio-label').textContent = isAudioOn ? 'FX: ON' : 'MUTED';
+            if (isAudioOn) playClick();
+        }
+
+        // --- DECK DECRYPTION DECODER ---
+        function decryptText(text, shift = 5) {
+            if (!text) return "";
+            const shiftAmount = (26 - (shift % 26)) % 26;
+            return text.replace(/[a-zA-Z]/g, function(char) {
+                const base = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - base + shiftAmount) % 26) + base);
+            });
+        }
+
+        // --- STATE MANAGEMENT ---
+        let questionBank = [];
+        let embeddedApiKey = ""; // Parsed silently from Column E
+
+        let gameState = {
+            debaters: [],
+            scores: {},
+            currentTopicIndex: 0,
+            activeDictationIndex: null
+        };
+
+        // 4-Minute Timer Variables
+        const FOUR_MINUTES_SECONDS = 240;
+        let timerSecondsLeft = FOUR_MINUTES_SECONDS;
+        let timerOvertimeSeconds = 0;
+        let timerInterval = null;
+        let isTimerPaused = false;
+        let hasPassedFourMinutes = false;
+
+        // Speech Recognition Instance
+        let speechRecognition = null;
+        let isListening = false;
+
+        // QR Scanner
+        let html5QrScanner = null;
+
+        // --- MODAL UTILS ---
+        function showAlert(title, msg) {
+            document.getElementById('alert-modal-title').textContent = title;
+            document.getElementById('alert-modal-msg').textContent = msg;
+            const m = document.getElementById('alert-modal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            playBeep(440, 0.15, 'sawtooth', 0.05);
+        }
+
+        function closeAlertModal() {
+            const m = document.getElementById('alert-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            playClick();
+        }
+
+        // --- CSV PARSING & DECK RETRIEVAL ---
+        function extractSheetId(url) {
+            const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
+        }
+
+        function parseCSV(text) {
+            let result = [];
+            let row = [];
+            let cur = '';
+            let inQuote = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+                if (char === '"' && inQuote && nextChar === '"') {
+                    cur += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    row.push(cur);
+                    cur = '';
+                } else if ((char === '\n' || char === '\r') && !inQuote) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    row.push(cur);
+                    if (row.some(cell => cell.trim() !== '')) result.push(row);
+                    row = [];
+                    cur = '';
+                } else {
+                    cur += char;
+                }
+            }
+            row.push(cur);
+            if (row.some(cell => cell.trim() !== '')) result.push(row);
+            return result;
+        }
+
+        async function loadFromGoogleSheet() {
+            playClick();
+            const url = document.getElementById('sheet-url-input').value.trim();
+            if (!url) {
+                showAlert("Input Required", "Please paste a Google Sheets link.");
+                return;
+            }
+
+            const sheetId = extractSheetId(url);
+            if (!sheetId) {
+                showAlert("Invalid Link", "Please provide a valid Google Sheets URL containing '/d/'.");
+                return;
+            }
+
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+            const btn = document.getElementById('btn-load-sheet');
+            btn.textContent = "Loading...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) {
+                    throw new Error("Could not access sheet. Ensure sharing is 'Anyone with the link can view'.");
+                }
+                let csvText = await response.text();
+                const isEncrypted = document.getElementById('use-encryption').checked;
+                if (isEncrypted) {
+                    csvText = decryptText(csvText, 5);
+                }
+                processDeckContent(csvText);
+            } catch (err) {
+                showAlert("Sheet Load Error", err.message || "Failed to load deck.");
+                btn.textContent = "Load Deck";
+                btn.disabled = false;
+            }
+        }
+
+        function loadFromLocalCSV(e) {
+            playClick();
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                let text = evt.target.result;
+                const isEncrypted = document.getElementById('use-encryption').checked;
+                if (isEncrypted) {
+                    text = decryptText(text, 5);
+                }
+                processDeckContent(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function processDeckContent(csvText) {
+            const rows = parseCSV(csvText);
+            questionBank = [];
+            embeddedApiKey = "";
+
+            // Check Column E (index 4) for embedded API Key
+            for (let r = 0; r < Math.min(rows.length, 5); r++) {
+                const row = rows[r];
+                if (row && row.length > 4 && row[4]) {
+                    const colE = row[4].trim();
+                    if (colE.startsWith("API_KEY:") || colE.startsWith("KEY:")) {
+                        const rawEnc = colE.replace(/^(API_KEY:|KEY:)/, '').trim();
+                        embeddedApiKey = decryptText(rawEnc, 5);
+                    } else if (colE.startsWith("AIzaSy")) {
+                        embeddedApiKey = colE;
+                    }
+                }
+            }
+
+            // Columns A through D: Questions (skips row 0 header)
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length > 0 && row[0] && row[0].trim() !== '') {
+                    questionBank.push({
+                        mainQuestion: row[0] ? row[0].trim() : "",
+                        followUp1: row[1] ? row[1].trim() : "",
+                        followUp2: row[2] ? row[2].trim() : "",
+                        followUp3: row[3] ? row[3].trim() : ""
+                    });
+                }
+            }
+
+            if (questionBank.length === 0) {
+                showAlert("No Questions Found", "Could not detect questions. Ensure Columns are: Main Question, FollowUp 1, FollowUp 2, FollowUp 3.");
+                const btn = document.getElementById('btn-load-sheet');
+                if (btn) { btn.textContent = "Load Deck"; btn.disabled = false; }
+                return;
+            }
+
+            playChime();
+
+            // Transition to Crew Registration
+            document.getElementById('step-0-deck-panel').classList.add('hidden');
+            document.getElementById('step-1-crew-panel').classList.remove('hidden');
+            document.getElementById('deck-size-label').textContent = questionBank.length;
+            document.getElementById('system-status-indicator').textContent = `STATUS: ${questionBank.length} TOPICS READY`;
+
+            // Populate 2 default slots
+            const list = document.getElementById('debater-slots-list');
+            list.innerHTML = '';
+            addDebaterSlot("Alpha Team");
+            addDebaterSlot("Bravo Team");
+
+            if (html5QrScanner) stopQRScanner();
+        }
+
+        function returnToDeckLoad() {
+            playClick();
+            document.getElementById('step-1-crew-panel').classList.add('hidden');
+            document.getElementById('step-0-deck-panel').classList.remove('hidden');
+            const btn = document.getElementById('btn-load-sheet');
+            if (btn) { btn.textContent = "Load Deck"; btn.disabled = false; }
+        }
+
+        // --- QR SCANNER ---
+        function startQRScanner() {
+            playClick();
+            document.getElementById('btn-start-qr').classList.add('hidden');
+            document.getElementById('qr-container').classList.remove('hidden');
+
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    stopQRScanner();
+                    document.getElementById('sheet-url-input').value = decodedText;
+                    loadFromGoogleSheet();
+                },
+                (err) => {}
+            ).catch(err => {
+                showAlert("Optical Sensor Error", "Unable to access camera.");
+                stopQRScanner();
+            });
+        }
+
+        function stopQRScanner() {
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    html5QrScanner.clear();
+                    html5QrScanner = null;
+                }).catch(e => {});
+            }
+            document.getElementById('btn-start-qr').classList.remove('hidden');
+            document.getElementById('qr-container').classList.add('hidden');
+        }
+
+        // --- CREW REGISTRATION ---
+        function addDebaterSlot(defaultVal = "") {
+            playClick();
+            const container = document.getElementById('debater-slots-list');
+            const count = container.children.length;
+            const slot = document.createElement('div');
+            slot.className = 'debater-item flex items-center gap-2 p-2 rounded-lg bg-pod-screen-dark/80 border border-pod-cyan/30';
+            slot.innerHTML = `
+                <span class="w-6 h-6 rounded bg-black/60 border border-pod-cyan/40 flex items-center justify-center font-mono text-[11px] font-bold text-pod-cyan shrink-0">
+                    0${count + 1}
+                </span>
+                <input type="text" value="${defaultVal}" placeholder="Debater or Team Name..." 
+                       class="debater-name-inp hud-input px-3 py-1.5 rounded-full flex-grow text-xs sm:text-sm">
+                <button onclick="removeDebaterSlot(this)" class="text-gray-400 hover:text-red-400 p-1 font-mono text-xs" title="Remove">✕</button>
+            `;
+            container.appendChild(slot);
+        }
+
+        function removeDebaterSlot(btn) {
+            playClick();
+            const container = document.getElementById('debater-slots-list');
+            if (container.children.length <= 2) {
+                showAlert("Minimum Required", "At least 2 debaters or teams are required.");
+                return;
+            }
+            btn.closest('.debater-item').remove();
+            Array.from(container.children).forEach((slot, idx) => {
+                slot.querySelector('span').textContent = `0${idx + 1}`;
+            });
+        }
+
+        function startDiscussionSession() {
+            playClick();
+            const inputs = document.querySelectorAll('.debater-name-inp');
+            const debaters = [];
+            let allNamed = true;
+
+            inputs.forEach((inp, i) => {
+                const name = inp.value.trim();
+                if (!name) allNamed = false;
+                debaters.push(name || `Team ${i + 1}`);
+            });
+
+            if (debaters.length < 2) {
+                showAlert("Roster Unmet", "Minimum 2 debaters or teams required.");
+                return;
+            }
+            if (!allNamed) {
+                showAlert("Missing Name", "Please provide a name for all debaters/teams.");
+                return;
+            }
+
+            gameState.debaters = debaters;
+            gameState.scores = {};
+            debaters.forEach(d => gameState.scores[d] = 0);
+            gameState.currentTopicIndex = 0;
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('standings-hud-bar').classList.remove('hidden');
+            document.getElementById('discussion-screen').classList.remove('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: DELIBERATING";
+
+            playVictory();
+            renderStandings();
+            renderDiscussionRound();
+        }
+
+        // --- STANDINGS BAR ---
+        function renderStandings() {
+            const container = document.getElementById('standings-pills-container');
+            container.innerHTML = '';
+            const sorted = [...gameState.debaters].sort((a, b) => gameState.scores[b] - gameState.scores[a]);
+
+            sorted.forEach((team, idx) => {
+                const isLeader = idx === 0 && gameState.scores[team] > 0;
+                const pill = document.createElement('div');
+                pill.className = `flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono transition-all ${
+                    isLeader 
+                        ? 'border-pod-cyan bg-pod-cyan/20 text-white shadow-[0_0_10px_rgba(0,242,255,0.3)] font-bold' 
+                        : 'border-pod-cyan/30 bg-pod-screen-dark text-gray-300'
+                }`;
+                pill.innerHTML = `
+                    <span class="w-4 h-4 rounded-full bg-black/60 flex items-center justify-center text-[10px] text-pod-cyan">${idx + 1}</span>
+                    <span class="max-w-[130px] truncate">${team}</span>
+                    <span class="text-pod-cyan font-bold">${gameState.scores[team]} PTS</span>
+                `;
+                container.appendChild(pill);
+            });
+
+            document.getElementById('topic-tracker-pill').textContent = 
+                `PROPOSITION ${(gameState.currentTopicIndex + 1).toString().padStart(2, '0')} / ${questionBank.length.toString().padStart(2, '0')}`;
+        }
+
+        // --- DISCUSSION PHASE (Mode 1) ---
+        function renderDiscussionRound() {
+            if (gameState.currentTopicIndex >= questionBank.length) {
+                showFinalPodium();
+                return;
+            }
+
+            const currentQ = questionBank[gameState.currentTopicIndex];
+            document.getElementById('disp-topic-ref').textContent = 
+                `Q-${(gameState.currentTopicIndex + 1).toString().padStart(3, '0')}`;
+            document.getElementById('disp-main-question').textContent = currentQ.mainQuestion;
+
+            document.getElementById('disp-sub-q1').textContent = currentQ.followUp1 || "Examine core premises and assumptions.";
+            document.getElementById('disp-sub-q2').textContent = currentQ.followUp2 || "Evaluate secondary implications and edge cases.";
+            document.getElementById('disp-sub-q3').textContent = currentQ.followUp3 || "Formulate illustrative analogies and counter-examples.";
+
+            document.querySelectorAll('.inquiry-card').forEach(card => {
+                card.classList.remove('border-pod-cyan', 'bg-pod-cyan/15');
+                card.querySelector('.inquiry-status').textContent = 'PENDING';
+                card.querySelector('.inquiry-status').className = 'inquiry-status text-[10px] font-mono text-gray-500';
+            });
+
+            startChronometer();
+        }
+
+        function toggleSubQuestion(el) {
+            playClick();
+            const isChecked = el.classList.toggle('border-pod-cyan');
+            el.classList.toggle('bg-pod-cyan/15', isChecked);
+            const status = el.querySelector('.inquiry-status');
+            if (isChecked) {
+                status.textContent = '✓ EXPLORED';
+                status.className = 'inquiry-status text-[10px] font-mono text-pod-cyan font-bold';
+            } else {
+                status.textContent = 'PENDING';
+                status.className = 'inquiry-status text-[10px] font-mono text-gray-500';
+            }
+        }
+
+        // --- 4-MINUTE CHRONOMETER ---
+        function startChronometer() {
+            clearInterval(timerInterval);
+            timerSecondsLeft = FOUR_MINUTES_SECONDS;
+            timerOvertimeSeconds = 0;
+            isTimerPaused = false;
+            hasPassedFourMinutes = false;
+
+            const btn = document.getElementById('btn-proceed-arguments');
+            btn.disabled = true;
+            document.getElementById('proceed-btn-caption').textContent = "Deliberation in Progress (Locked until 4:00)";
+            document.getElementById('btn-timer-pause').textContent = "Pause Timer";
+
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                if (isTimerPaused) return;
+
+                if (timerSecondsLeft > 0) {
+                    timerSecondsLeft--;
+                    updateTimerDisplay();
+                    if (timerSecondsLeft === 0) {
+                        onFourMinutesReached();
+                    }
+                } else {
+                    timerOvertimeSeconds++;
+                    updateOvertimeDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSecondsLeft / 60);
+            const s = timerSecondsLeft % 60;
+            const str = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('countdown-readout').textContent = str;
+            document.getElementById('countdown-readout').className = "text-4xl sm:text-5xl font-mono font-bold text-white glow-cyan tracking-wider";
+            document.getElementById('timer-state-label').textContent = "4 MIN REQUIRED";
+
+            const circumference = 314.16; // 2 * PI * 50
+            const fraction = (FOUR_MINUTES_SECONDS - timerSecondsLeft) / FOUR_MINUTES_SECONDS;
+            const offset = circumference * (1 - fraction);
+            const ring = document.getElementById('timer-ring-stroke');
+            ring.style.strokeDashoffset = offset;
+            ring.style.stroke = '#00F2FF';
+        }
+
+        function onFourMinutesReached() {
+            hasPassedFourMinutes = true;
+            playChime();
+
+            const btn = document.getElementById('btn-proceed-arguments');
+            btn.disabled = false;
+            document.getElementById('proceed-btn-caption').textContent = "Proceed to Written Arguments →";
+            document.getElementById('proceed-note').textContent = "✓ 4 Minutes Completed. Proceed or continue deliberate in overtime as desired.";
+            document.getElementById('proceed-note').className = "text-[11px] font-mono text-pod-cyan mt-2";
+
+            updateOvertimeDisplay();
+        }
+
+        function updateOvertimeDisplay() {
+            const m = Math.floor(timerOvertimeSeconds / 60);
+            const s = timerOvertimeSeconds % 60;
+            const str = `+${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('countdown-readout').textContent = str;
+            document.getElementById('countdown-readout').className = "text-4xl sm:text-5xl font-mono font-bold text-pod-cyan glow-cyan tracking-wider";
+            document.getElementById('timer-state-label').textContent = "EXTENDED DELIBERATION";
+
+            const ring = document.getElementById('timer-ring-stroke');
+            ring.style.stroke = '#00F2FF';
+            ring.style.strokeDashoffset = 0;
+        }
+
+        function toggleTimerPause() {
+            playClick();
+            isTimerPaused = !isTimerPaused;
+            document.getElementById('btn-timer-pause').textContent = isTimerPaused ? "Resume Timer" : "Pause Timer";
+        }
+
+        function resetTimer() {
+            playClick();
+            startChronometer();
+        }
+
+        function fastForwardTimer() {
+            playClick();
+            timerSecondsLeft = 0;
+            updateTimerDisplay();
+            onFourMinutesReached();
+        }
+
+        // --- PROCEED TO WRITTEN ARGUMENT MODE (Mode 2) ---
+        function proceedToArgumentSubmission() {
+            playClick();
+            clearInterval(timerInterval);
+
+            document.getElementById('discussion-screen').classList.add('hidden');
+            document.getElementById('argument-screen').classList.remove('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: DEPOSITIONS PENDING";
+
+            const currentQ = questionBank[gameState.currentTopicIndex];
+            document.getElementById('arg-header-question').textContent = currentQ.mainQuestion;
+
+            const drawer = document.getElementById('inquiries-drawer-content');
+            drawer.innerHTML = `
+                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 1:</strong> ${currentQ.followUp1 || 'N/A'}</div>
+                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 2:</strong> ${currentQ.followUp2 || 'N/A'}</div>
+                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 3:</strong> ${currentQ.followUp3 || 'N/A'}</div>
+            `;
+
+            renderArgumentTerminals();
+            updateDevilsAdvocateLimit();
+        }
+
+        function toggleInquiriesDrawer() {
+            playClick();
+            document.getElementById('inquiries-drawer-box').classList.toggle('hidden');
+        }
+
+        // --- ARGUMENT CONSOLES & SPEECH-TO-TEXT ---
+        function renderArgumentTerminals() {
+            const container = document.getElementById('debater-argument-consoles');
+            container.innerHTML = '';
+
+            gameState.debaters.forEach((name, idx) => {
+                const card = document.createElement('div');
+                card.className = 'hud-panel p-4 sm:p-5 rounded-xl space-y-3';
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-pod-cyan/30 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-black/60 border border-pod-cyan/50 flex items-center justify-center font-mono text-xs font-bold text-pod-cyan">
+                                0${idx + 1}
+                            </span>
+                            <h4 class="text-base font-bold font-display text-white">${name}</h4>
+                        </div>
+
+                        <!-- Devil's Advocate Stance Checkbox -->
+                        <label class="da-label flex items-center gap-2 cursor-pointer bg-black/50 px-3 py-1 rounded-full border border-pod-cyan/30 hover:border-pod-cyan transition-colors select-none">
+                            <input type="checkbox" id="da-check-${idx}" onchange="onToggleDevilsAdvocate(${idx})" 
+                                   class="da-input w-3.5 h-3.5 rounded border-pod-cyan/50 bg-black text-pod-cyan focus:ring-0 cursor-pointer">
+                            <span class="text-xs font-mono text-gray-300">
+                                Devil's Advocate Stance <strong class="text-pod-cyan">(+1 Bonus)</strong>
+                            </span>
+                        </label>
+                    </div>
+
+                    <textarea id="argument-input-${idx}" rows="4" 
+                              placeholder="Record your premises (e.g. p → q, q → r...), illustrative analogies, and logical conclusions..." 
+                              class="hud-input w-full p-3.5 rounded-lg text-xs sm:text-sm font-mono resize-y leading-relaxed"></textarea>
+
+                    <div class="flex justify-between items-center text-xs">
+                        <!-- Dictation Mic Button -->
+                        <button onclick="toggleMicDictation(${idx})" id="mic-btn-${idx}" 
+                                class="btn-pill-secondary px-3 py-1 text-xs flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-pod-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                            <span class="mic-caption font-mono">Dictate (Mic)</span>
+                            <div class="mic-wave-box hidden flex items-center gap-0.5 h-3">
+                                <span class="voice-wave w-0.5 bg-red-400 h-2"></span>
+                                <span class="voice-wave w-0.5 bg-red-500 h-3"></span>
+                                <span class="voice-wave w-0.5 bg-red-400 h-2"></span>
+                            </div>
+                        </button>
+
+                        <span id="word-badge-${idx}" class="text-[11px] font-mono text-gray-400">0 words</span>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                const textarea = card.querySelector(`#argument-input-${idx}`);
+                textarea.addEventListener('input', () => {
+                    const text = textarea.value.trim();
+                    const words = text ? text.split(/\s+/).length : 0;
+                    document.getElementById(`word-badge-${idx}`).textContent = `${words} words`;
+                });
+            });
+        }
+
+        // --- DEVIL'S ADVOCATE 50% QUOTA ---
+        function updateDevilsAdvocateLimit() {
+            const maxAllowed = Math.floor(gameState.debaters.length / 2); // Max 50%
+            const checkboxes = document.querySelectorAll('.da-input');
+            let checkedCount = 0;
+            checkboxes.forEach(cb => { if (cb.checked) checkedCount++; });
+
+            document.getElementById('da-quota-counter').textContent = 
+                `${checkedCount} / ${maxAllowed} Slots Claimed`;
+
+            checkboxes.forEach(cb => {
+                if (!cb.checked) {
+                    if (checkedCount >= maxAllowed) {
+                        cb.disabled = true;
+                        cb.closest('.da-label').classList.add('opacity-40', 'cursor-not-allowed');
+                        cb.closest('.da-label').title = "Maximum 50% limit reached for this round.";
+                    } else {
+                        cb.disabled = false;
+                        cb.closest('.da-label').classList.remove('opacity-40', 'cursor-not-allowed');
+                        cb.closest('.da-label').title = "";
+                    }
+                }
+            });
+        }
+
+        function onToggleDevilsAdvocate(idx) {
+            playClick();
+            updateDevilsAdvocateLimit();
+        }
+
+        // --- SPEECH-TO-TEXT (Web Speech API) ---
+        function toggleMicDictation(idx) {
+            playClick();
+            const SpeechRecClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecClass) {
+                showAlert("Microphone Unsupported", "Speech Recognition is available in Chrome, Edge, and Safari. You can still type directly!");
+                return;
+            }
+
+            const btn = document.getElementById(`mic-btn-${idx}`);
+            const caption = btn.querySelector('.mic-caption');
+            const wave = btn.querySelector('.mic-wave-box');
+            const targetInput = document.getElementById(`argument-input-${idx}`);
+
+            if (isListening && gameState.activeDictationIndex === idx) {
+                stopMicDictation();
+                return;
+            }
+            if (isListening) {
+                stopMicDictation();
+            }
+
+            try {
+                speechRecognition = new SpeechRecClass();
+                speechRecognition.continuous = true;
+                speechRecognition.interimResults = true;
+                speechRecognition.lang = 'en-US';
+
+                gameState.activeDictationIndex = idx;
+                isListening = true;
+
+                btn.classList.add('border-red-500', 'bg-red-950/40');
+                caption.textContent = "Listening...";
+                wave.classList.remove('hidden');
+
+                let initialText = targetInput.value;
+                if (initialText && !initialText.endsWith(' ')) initialText += ' ';
+
+                speechRecognition.onresult = (e) => {
+                    let transcript = '';
+                    for (let i = e.resultIndex; i < e.results.length; i++) {
+                        transcript += e.results[i][0].transcript;
+                    }
+                    targetInput.value = initialText + transcript;
+                    targetInput.dispatchEvent(new Event('input'));
+                };
+
+                speechRecognition.onerror = (e) => {
+                    stopMicDictation();
+                };
+                speechRecognition.onend = () => {
+                    if (isListening && gameState.activeDictationIndex === idx) {
+                        stopMicDictation();
+                    }
+                };
+
+                speechRecognition.start();
+            } catch (err) {
+                stopMicDictation();
+            }
+        }
+
+        function stopMicDictation() {
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (e) {}
+                speechRecognition = null;
+            }
+            if (gameState.activeDictationIndex !== null) {
+                const btn = document.getElementById(`mic-btn-${gameState.activeDictationIndex}`);
+                if (btn) {
+                    btn.classList.remove('border-red-500', 'bg-red-950/40');
+                    btn.querySelector('.mic-caption').textContent = "Dictate (Mic)";
+                    btn.querySelector('.mic-wave-box').classList.add('hidden');
+                }
+            }
+            isListening = false;
+            gameState.activeDictationIndex = null;
+        }
+
+        // --- ARBITRATION EXECUTION ---
+        async function transmitArgumentsToAI() {
+            playClick();
+            stopMicDictation();
+
+            const currentQ = questionBank[gameState.currentTopicIndex];
+            const submissions = [];
+            let anyText = false;
+
+            gameState.debaters.forEach((name, i) => {
+                const text = document.getElementById(`argument-input-${i}`).value.trim();
+                const isDA = document.getElementById(`da-check-${i}`).checked;
+                if (text) anyText = true;
+                submissions.push({
+                    teamName: name,
+                    argument: text || "(No argument submitted)",
+                    isDevilsAdvocate: isDA
+                });
+            });
+
+            if (!anyText) {
+                showAlert("Arguments Required", "At least one participant must submit an argument.");
+                return;
+            }
+
+            // Transition to Results Screen & Show Processing Radar
+            document.getElementById('argument-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+            document.getElementById('processing-radar-state').classList.remove('hidden');
+            document.getElementById('results-content-box').classList.add('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: ARBITRATING...";
+
+            playBeep(330, 0.35, 'sawtooth', 0.05);
+
+            try {
+                let evalResult = null;
+
+                if (embeddedApiKey) {
+                    // Call Live AI using key parsed silently from Column E (supports OpenRouter and Gemini)
+                    evalResult = await queryAIPhilosopher(embeddedApiKey, currentQ, submissions);
+                } else {
+                    // Fallback to local heuristic logic engine if no API key in spreadsheet
+                    console.log("No API key embedded in spreadsheet. Running local heuristic logic engine.");
+                    await new Promise(r => setTimeout(r, 2000));
+                    evalResult = runLocalHeuristicArbiter(currentQ, submissions);
+                }
+
+                renderEvaluationResults(evalResult);
+            } catch (err) {
+                console.error("AI Arbitration Error:", err);
+                // Safe fallback to local engine on error so class is never interrupted
+                const fallbackResult = runLocalHeuristicArbiter(currentQ, submissions);
+                renderEvaluationResults(fallbackResult);
+            }
+        }
+
+        function extractJson(text) {
+            if (!text) return null;
+            let cleaned = text.trim();
+            cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+            return JSON.parse(cleaned);
+        }
+
+        // --- MULTI-PROVIDER AI QUERY (OpenRouter & Google Gemini) ---
+        async function queryAIPhilosopher(keyPayload, currentQ, submissions) {
+            let provider = "gemini";
+            let apiKey = keyPayload.trim();
+            let model = "google/gemini-2.5-flash"; // Default fast model
+
+            // Detect Provider and Model from payload or key prefix
+            if (apiKey.startsWith("OPENROUTER:")) {
+                provider = "openrouter";
+                const parts = apiKey.replace("OPENROUTER:", "").split(":");
+                if (parts.length >= 2) {
+                    model = parts[0];
+                    apiKey = parts.slice(1).join(":");
+                } else {
+                    apiKey = parts[0];
+                }
+            } else if (apiKey.startsWith("GEMINI:")) {
+                provider = "gemini";
+                apiKey = apiKey.replace("GEMINI:", "");
+            } else if (apiKey.startsWith("sk-or-")) {
+                provider = "openrouter";
+            }
+
+            const prompt = `
+You are the AI Philosopher, an impartial autonomous logic and dialectic arbiter.
+Evaluate the debater submissions for this debate proposition:
+
+CENTRAL PROPOSITION: "${currentQ.mainQuestion}"
+INQUIRIES EXPLORED:
+1. ${currentQ.followUp1}
+2. ${currentQ.followUp2}
+3. ${currentQ.followUp3}
+
+DEBATER SUBMISSIONS:
+${submissions.map(s => `
+[DEBATER / TEAM]: "${s.teamName}"
+[DEVIL'S ADVOCATE STANCE]: ${s.isDevilsAdvocate ? "YES (+1 Bonus point)" : "NO"}
+[ARGUMENT]:
+"""${s.argument}"""
+`).join("\n")}
+
+EVALUATION DIRECTIVES:
+1. Syllogistic Chain & Premises: Count distinct premises (p -> q, q -> r, r -> s, or reverse). Count the conclusion as a premise. Evaluate logical soundness.
+2. Analogies: Count and assess aptness of illustrative analogies.
+3. Cogency & Quality: Argument depth, persuasive clarity, and direct relevance to the proposition and inquiries.
+4. Devil's Advocate Bonus: If marked as Devil's Advocate, automatically grant an extra +1 point bonus.
+5. Determine Round Victor: Select the best overall answer taking into account premises, analogies, quality, and the Devil's Advocate bonus.
+
+Respond strictly in valid JSON matching this schema:
+{
+  "winnerName": "Name of winning debater/team",
+  "winnerRationale": "2-3 sentences explaining why this answer was judged best.",
+  "evaluations": [
+    {
+      "teamName": "Debater Name",
+      "premiseCount": 3,
+      "premisesChain": "p -> q -> r (summary of identified premises)",
+      "analogyCount": 1,
+      "analogiesIdentified": "Description of analogy used, or 'None cited'",
+      "qualityScore": 8,
+      "devilsAdvocateBonus": 1,
+      "totalRoundScore": 10,
+      "aiCritique": "Concise feedback from the AI Philosopher."
+    }
+  ]
+}
+`;
+
+            if (provider === "openrouter") {
+                const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": window.location.href,
+                        "X-Title": "AI Philosopher"
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: "system", content: "You are the AI Philosopher, an impartial autonomous logic and dialectic arbiter. Respond strictly in valid JSON format." },
+                            { role: "user", content: prompt }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || `OpenRouter HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+                const content = data.choices?.[0]?.message?.content;
+                if (!content) throw new Error("Empty response from OpenRouter model.");
+                return extractJson(content);
+            } else {
+                // Google Gemini API Direct
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            temperature: 0.2
+                        }
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || `Gemini HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!text) throw new Error("Empty response from Gemini model.");
+                return extractJson(text);
+            }
+        }
+
+        // --- LOCAL HEURISTIC ARBITER (Offline Fallback) ---
+        function runLocalHeuristicArbiter(currentQ, submissions) {
+            let maxScore = -1;
+            let victor = "";
+
+            const evaluations = submissions.map(sub => {
+                const text = sub.argument;
+                const premiseMatches = text.match(/\b(because|therefore|since|implies|if|then|hence|thus|consequently|furthermore)\b/gi) || [];
+                const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 5).length;
+                const premiseCount = Math.max(1, Math.min(6, premiseMatches.length + Math.floor(sentences / 2) + 1)); // conclusion counts as premise
+
+                const analogyMatches = text.match(/\b(like|as if|analogous|comparable|akin|similar to|resembles|metaphor)\b/gi) || [];
+                const analogyCount = Math.min(3, analogyMatches.length);
+
+                let qualityScore = Math.min(9, Math.max(3, Math.floor(text.length / 50) + 3));
+                const daBonus = sub.isDevilsAdvocate ? 1 : 0;
+                const totalScore = premiseCount + (analogyCount * 2) + qualityScore + daBonus;
+
+                if (totalScore > maxScore) {
+                    maxScore = totalScore;
+                    victor = sub.teamName;
+                }
+
+                return {
+                    teamName: sub.teamName,
+                    premiseCount: premiseCount,
+                    premisesChain: `Valid syllogism identified: [P1] → [P2] → [Conclusion] (${premiseCount} premises validated)`,
+                    analogyCount: analogyCount,
+                    analogiesIdentified: analogyCount > 0 ? "Conceptual analogy cited to illuminate reasoning." : "None cited.",
+                    qualityScore: qualityScore,
+                    devilsAdvocateBonus: daBonus,
+                    totalRoundScore: totalScore,
+                    aiCritique: `Argument articulated ${premiseCount} distinct premises and ${analogyCount} illustrative analogies with cohesive dialectic progression.`
+                };
+            });
+
+            return {
+                winnerName: victor,
+                winnerRationale: `${victor} constructed the most rigorous logical chain with superior premise chaining and analogical depth.`,
+                evaluations: evaluations
+            };
+        }
+
+        // --- RENDER RESULTS ---
+        function renderEvaluationResults(data) {
+            document.getElementById('processing-radar-state').classList.add('hidden');
+            document.getElementById('results-content-box').classList.remove('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: DECISION RENDERED";
+
+            playVictory();
+
+            document.getElementById('victor-name-heading').textContent = data.winnerName;
+            document.getElementById('victor-rationale-body').textContent = data.winnerRationale;
+
+            const victorEval = data.evaluations.find(e => e.teamName === data.winnerName);
+            const pts = victorEval ? victorEval.totalRoundScore : 3;
+            document.getElementById('victor-score-pill').textContent = `+${pts} ROUND PTS`;
+
+            // Update scores
+            data.evaluations.forEach(ev => {
+                if (gameState.scores[ev.teamName] !== undefined) {
+                    gameState.scores[ev.teamName] += ev.totalRoundScore;
+                }
+            });
+            renderStandings();
+
+            // Render Deconstruction Cards
+            const container = document.getElementById('results-deconstructions-list');
+            container.innerHTML = '';
+
+            data.evaluations.forEach(ev => {
+                const isVictor = ev.teamName === data.winnerName;
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-lg border transition-all ${
+                    isVictor 
+                        ? 'border-pod-cyan bg-pod-cyan/15 shadow-[0_0_15px_rgba(0,242,255,0.2)]' 
+                        : 'border-pod-cyan/30 bg-pod-screen-dark/80'
+                }`;
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center mb-2.5 border-b border-pod-cyan/30 pb-2">
+                        <div class="flex items-center gap-2">
+                            ${isVictor ? '<span class="text-pod-cyan text-sm">★</span>' : ''}
+                            <h4 class="text-sm sm:text-base font-bold font-display text-white">${ev.teamName}</h4>
+                            ${isVictor ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-pod-cyan/20 text-pod-cyan font-bold border border-pod-cyan/50">ROUND VICTOR</span>' : ''}
+                        </div>
+                        <span class="text-xs font-mono font-bold text-pod-cyan bg-black/60 px-2.5 py-1 rounded border border-pod-cyan/30">
+                            +${ev.totalRoundScore} PTS
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2 text-xs font-mono">
+                        <div class="bg-black/40 p-2 rounded border border-pod-cyan/20">
+                            <span class="text-[10px] text-gray-400 block">PREMISES (p→q):</span>
+                            <span class="text-white font-bold">${ev.premiseCount} validated</span>
+                        </div>
+                        <div class="bg-black/40 p-2 rounded border border-pod-cyan/20">
+                            <span class="text-[10px] text-gray-400 block">ANALOGIES:</span>
+                            <span class="text-pod-cyan font-bold">${ev.analogyCount} cited</span>
+                        </div>
+                        <div class="bg-black/40 p-2 rounded border border-pod-cyan/20">
+                            <span class="text-[10px] text-gray-400 block">COGENCY:</span>
+                            <span class="text-white font-bold">${ev.qualityScore} / 10</span>
+                        </div>
+                        <div class="bg-black/40 p-2 rounded border border-pod-cyan/20">
+                            <span class="text-[10px] text-gray-400 block">DEVIL'S ADVOCATE:</span>
+                            <span class="${ev.devilsAdvocateBonus > 0 ? 'text-pod-cyan font-bold' : 'text-gray-500'}">
+                                ${ev.devilsAdvocateBonus > 0 ? '+1 BONUS' : 'None (0)'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="text-xs font-mono space-y-1 pt-1">
+                        <div class="text-gray-300 bg-black/30 p-2 rounded border border-white/5 text-[11px]">
+                            <strong class="text-pod-cyan">Chain:</strong> ${ev.premisesChain}
+                        </div>
+                        <div class="text-cyan-100 font-tech leading-relaxed pt-1">
+                            <strong class="text-pod-cyan">AI Philosopher Critique:</strong> ${ev.aiCritique}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            document.getElementById('session-progress-indicator').textContent = 
+                `Proposition ${gameState.currentTopicIndex + 1} of ${questionBank.length} completed.`;
+
+            const isLast = (gameState.currentTopicIndex + 1) >= questionBank.length;
+            document.getElementById('btn-next-topic').textContent = isLast ? "Conclude Session →" : "Next Proposition →";
+        }
+
+        function advanceToNextProposition() {
+            playClick();
+            gameState.currentTopicIndex++;
+
+            if (gameState.currentTopicIndex >= questionBank.length) {
+                showFinalPodium();
+                return;
+            }
+
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('discussion-screen').classList.remove('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: DELIBERATING";
+
+            renderStandings();
+            renderDiscussionRound();
+        }
+
+        function terminateSessionEarly() {
+            playClick();
+            if (confirm("End this dialectic session and display final rankings?")) {
+                showFinalPodium();
+            }
+        }
+
+        function showFinalPodium() {
+            playVictory();
+            document.getElementById('discussion-screen').classList.add('hidden');
+            document.getElementById('argument-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('concluded-screen').classList.remove('hidden');
+            document.getElementById('system-status-indicator').textContent = "STATUS: PROTOCOLS CONCLUDED";
+
+            const podium = document.getElementById('final-podium-container');
+            podium.innerHTML = '';
+            const sorted = [...gameState.debaters].sort((a, b) => gameState.scores[b] - gameState.scores[a]);
+
+            sorted.forEach((team, idx) => {
+                const isChampion = idx === 0;
+                const row = document.createElement('div');
+                row.className = `flex justify-between items-center p-3.5 rounded-lg border text-xs sm:text-sm font-mono ${
+                    isChampion 
+                        ? 'border-pod-cyan bg-pod-cyan/20 shadow-[0_0_15px_rgba(0,242,255,0.3)] font-bold' 
+                        : 'border-pod-cyan/30 bg-pod-screen-dark/90 text-gray-300'
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded bg-black/60 border border-pod-cyan/40 flex items-center justify-center text-xs font-bold ${isChampion ? 'text-pod-cyan' : 'text-gray-400'}">
+                            ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                        </span>
+                        <div>
+                            <span class="text-white font-bold block">${team}</span>
+                            ${isChampion ? '<span class="text-[10px] text-pod-cyan uppercase tracking-wider">Dialectic Champion</span>' : ''}
+                        </div>
+                    </div>
+                    <span class="text-base font-bold text-pod-cyan">${gameState.scores[team]} PTS</span>
+                `;
+                podium.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

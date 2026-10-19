@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PHILOSOPHER // Deck Builder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pod: {
+                            hull: '#E8E5DD',
+                            screen: '#021B24',
+                            'screen-dark': '#011017',
+                            cyan: '#00F2FF',
+                            'cyan-glow': 'rgba(0, 242, 255, 0.35)',
+                            'cyan-tint': 'rgba(0, 242, 255, 0.08)'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        tech: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                        body: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            background-color: #121A1D;
+            color: #E6F8FA;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .pod-housing {
+            background: linear-gradient(180deg, #ECE9E1 0%, #D8D4C8 100%);
+            border: 2px solid #C4BEAF;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), inset 0 2px 4px rgba(255,255,255,0.8);
+            padding: 16px;
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+        }
+        @media (min-width: 768px) {
+            .pod-housing { padding: 24px; }
+        }
+
+        .pod-housing::before {
+            content: 'HPOD 2.0 // DECK AUTHORING TOOL • HSI MODEL 709';
+            position: absolute;
+            top: 8px;
+            left: 28px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: #7A7569;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+        }
+
+        .touchscreen-frame {
+            background: radial-gradient(circle at 50% 30%, #062833 0%, #021B24 55%, #010F15 100%);
+            border: 4px solid #142025;
+            border-radius: 12px;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 242, 255, 0.12);
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .touchscreen-frame { padding: 28px; }
+        }
+
+        .hud-panel {
+            background: rgba(2, 33, 44, 0.75);
+            border: 1.5px solid rgba(0, 242, 255, 0.45);
+            box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.06);
+            position: relative;
+        }
+
+        .btn-pill {
+            background: rgba(0, 242, 255, 0.08);
+            border: 1.5px solid #00F2FF;
+            border-radius: 9999px;
+            color: #FFFFFF;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-pill:hover:not(:disabled) {
+            background: #00F2FF;
+            color: #021B24;
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.7);
+            transform: scale(1.02);
+        }
+
+        .btn-pill-secondary {
+            background: rgba(2, 33, 44, 0.9);
+            border: 1px solid rgba(0, 242, 255, 0.5);
+            border-radius: 9999px;
+            color: #8CE8F2;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .btn-pill-secondary:hover:not(:disabled) {
+            background: rgba(0, 242, 255, 0.2);
+            color: #FFFFFF;
+            border-color: #00F2FF;
+        }
+
+        .hud-input {
+            background: rgba(1, 20, 28, 0.85);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            color: #FFFFFF;
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.2s ease;
+        }
+        .hud-input:focus {
+            outline: none;
+            border-color: #00F2FF;
+            background: rgba(2, 33, 44, 0.95);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.35);
+        }
+
+        .glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="pod-housing">
+        <div class="touchscreen-frame">
+
+            <!-- HEADER -->
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-pod-cyan/30 mb-6 gap-3">
+                <div>
+                    <span class="text-[10px] font-mono text-pod-cyan tracking-wider uppercase block">AUTHORING TERMINAL // HPOD 2.0</span>
+                    <h1 class="text-2xl sm:text-3xl font-black font-display tracking-widest text-white glow-cyan uppercase">
+                        AI PHILOSOPHER // DECK BUILDER
+                    </h1>
+                    <p class="text-[11px] font-mono text-gray-300">Author propositions, embed encrypted API keys, and export anti-spoiler decks.</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('import-file').click()" class="btn-pill-secondary px-4 py-2 text-xs flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-pod-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Import & Decrypt
+                    </button>
+                    <input type="file" id="import-file" accept=".csv" class="hidden" onchange="importCSVFile(event)">
+                </div>
+            </header>
+
+            <!-- API KEY ENCRYPTION HUD PANEL (OpenRouter & Google Gemini) -->
+            <div class="hud-panel p-5 rounded-xl border-pod-cyan/60 mb-6 space-y-3.5">
+                <div class="flex items-center justify-between border-b border-pod-cyan/30 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base text-pod-cyan">🔑</span>
+                        <div>
+                            <h3 class="text-sm font-bold font-display text-white uppercase tracking-wider">AI Provider & API Key Integration</h3>
+                            <p class="text-[11px] font-mono text-gray-300">
+                                Supports <strong class="text-pod-cyan">OpenRouter</strong> (recommended) or <strong class="text-pod-cyan">Google Gemini</strong>. 
+                                The key is encrypted into <strong class="text-white">Column E</strong> upon export — invisible to students and completely ignored by older games!
+                            </p>
+                        </div>
+                    </div>
+                    <span id="detected-provider-badge" class="text-[10px] font-mono px-2.5 py-0.5 rounded bg-black border border-pod-cyan/40 text-pod-cyan font-bold uppercase hidden sm:inline">
+                        AUTO-DETECT ACTIVE
+                    </span>
+                </div>
+
+                <!-- Provider & Model Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-mono text-gray-300 uppercase mb-1">AI Provider:</label>
+                        <select id="provider-select" onchange="onProviderChange()" class="hud-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="openrouter">OpenRouter (Supports any model: Gemini, Claude, GPT, Llama)</option>
+                            <option value="gemini">Google Gemini Direct (Requires Google AI Studio Key)</option>
+                        </select>
+                    </div>
+
+                    <div id="openrouter-model-container">
+                        <label class="block font-mono text-gray-300 uppercase mb-1">OpenRouter Model Architecture:</label>
+                        <select id="openrouter-model-select" class="hud-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="google/gemini-2.5-flash">google/gemini-2.5-flash (Fastest, High Logic & Very Cheap)</option>
+                            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini (Fast & Reliable)</option>
+                            <option value="anthropic/claude-3.5-haiku">anthropic/claude-3.5-haiku (Sharp Philosophical Reasoning)</option>
+                            <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (Open Weights Core)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Key Input & Buttons -->
+                <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+                    <input type="password" id="builder-api-key" oninput="onKeyInput(this.value)" 
+                           placeholder="Paste OpenRouter (sk-or-v1-...) or Gemini (AIzaSy...) API Key" 
+                           class="hud-input px-3.5 py-2 rounded-full flex-grow text-xs font-mono">
+                    <button onclick="saveApiKeyLocally()" class="btn-pill-secondary px-4 py-2 text-xs font-mono whitespace-nowrap">
+                        Save in Memory
+                    </button>
+                    <button onclick="copyGoogleSheetSnippet()" class="btn-pill px-4 py-2 text-xs font-mono whitespace-nowrap" title="Copy Column E cell value for Google Sheets">
+                        Copy Cell E1 Text
+                    </button>
+                </div>
+                <div id="api-status-msg" class="text-[11px] font-mono text-pod-cyan hidden"></div>
+            </div>
+
+            <!-- CARDS CONTAINER -->
+            <div id="cards-container" class="space-y-4 mb-6">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- FOOTER CONTROLS -->
+            <div class="hud-panel p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <button onclick="addCard()" class="btn-pill-secondary px-5 py-2.5 text-xs flex items-center gap-2 w-full sm:w-auto justify-center">
+                    <span class="text-base font-bold">+</span>
+                    Add Another Topic
+                </button>
+
+                <button onclick="exportCSV()" class="btn-pill px-8 py-3 text-xs sm:text-sm font-bold flex items-center gap-2 w-full sm:w-auto justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    Export Encrypted Menu (CSV)
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let cardsData = [];
+
+        // --- TEXT ENCRYPTION & DECRYPTION ENGINE ---
+        function encryptText(text, shift = 5) {
+            if (!text) return "";
+            return text.replace(/[a-zA-Z]/g, function(char) {
+                const base = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - base + shift) % 26) + base);
+            });
+        }
+
+        function decryptText(text, shift = 5) {
+            if (!text) return "";
+            const shiftAmount = (26 - (shift % 26)) % 26;
+            return text.replace(/[a-zA-Z]/g, function(char) {
+                const base = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - base + shiftAmount) % 26) + base);
+            });
+        }
+
+        function escapeCSV(field) {
+            if (field === undefined || field === null) return '';
+            let str = String(field);
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+
+        function addCard(main = "", f1 = "", f2 = "", f3 = "") {
+            const id = Date.now() + Math.random().toString(36).substr(2, 7);
+            cardsData.push({ id, main, f1, f2, f3 });
+            renderCards();
+        }
+
+        function removeCard(id) {
+            if (cardsData.length <= 1) {
+                alert("At least one debate proposition is required.");
+                return;
+            }
+            cardsData = cardsData.filter(c => c.id !== id);
+            renderCards();
+        }
+
+        function updateCardData(id, field, value) {
+            const card = cardsData.find(c => c.id === id);
+            if (card) card[field] = value;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            cardsData.forEach((card, index) => {
+                const el = document.createElement('div');
+                el.className = 'hud-panel p-5 rounded-xl space-y-3';
+                el.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-pod-cyan/30 pb-2">
+                        <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">
+                            Proposition Reference // Ref-${(index + 1).toString().padStart(2, '0')}
+                        </span>
+                        <button onclick="removeCard('${card.id}')" class="text-gray-400 hover:text-red-400 text-xs font-mono">
+                            ✕ Remove
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-gray-300 uppercase mb-1">Central Question / Debate Prompt:</label>
+                        <textarea rows="2" onchange="updateCardData('${card.id}', 'main', this.value)" 
+                                  class="hud-input w-full p-2.5 rounded-lg text-xs font-mono resize-y" 
+                                  placeholder="e.g. Is an artificial intelligence capable of genuine philosophical introspection?">${card.main}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 1:</label>
+                            <input type="text" value="${card.f1}" onchange="updateCardData('${card.id}', 'f1', this.value)" 
+                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Probe premises...">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 2:</label>
+                            <input type="text" value="${card.f2}" onchange="updateCardData('${card.id}', 'f2', this.value)" 
+                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Challenge assumptions...">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 3:</label>
+                            <input type="text" value="${card.f3}" onchange="updateCardData('${card.id}', 'f3', this.value)" 
+                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Ask for analogy...">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function onProviderChange() {
+            const provider = document.getElementById('provider-select').value;
+            const modelBox = document.getElementById('openrouter-model-container');
+            if (provider === 'openrouter') {
+                modelBox.classList.remove('hidden');
+                document.getElementById('detected-provider-badge').textContent = 'PROVIDER: OPENROUTER';
+            } else {
+                modelBox.classList.add('hidden');
+                document.getElementById('detected-provider-badge').textContent = 'PROVIDER: GEMINI DIRECT';
+            }
+        }
+
+        function onKeyInput(val) {
+            const trimmed = val.trim();
+            const providerSelect = document.getElementById('provider-select');
+            const badge = document.getElementById('detected-provider-badge');
+
+            if (trimmed.startsWith('sk-or-')) {
+                providerSelect.value = 'openrouter';
+                badge.textContent = 'DETECTED: OPENROUTER KEY';
+                badge.className = 'text-[10px] font-mono px-2.5 py-0.5 rounded bg-black border border-pod-cyan/80 text-pod-cyan font-bold uppercase';
+                onProviderChange();
+            } else if (trimmed.startsWith('AIzaSy')) {
+                providerSelect.value = 'gemini';
+                badge.textContent = 'DETECTED: GEMINI KEY';
+                badge.className = 'text-[10px] font-mono px-2.5 py-0.5 rounded bg-black border border-pod-cyan/80 text-pod-cyan font-bold uppercase';
+                onProviderChange();
+            }
+        }
+
+        function buildFormattedKeyPayload() {
+            const key = document.getElementById('builder-api-key').value.trim();
+            if (!key) return "";
+            const provider = document.getElementById('provider-select').value;
+            if (provider === 'openrouter') {
+                const model = document.getElementById('openrouter-model-select').value || 'google/gemini-2.5-flash';
+                return `OPENROUTER:${model}:${key}`;
+            } else {
+                return `GEMINI:${key}`;
+            }
+        }
+
+        function saveApiKeyLocally() {
+            const key = document.getElementById('builder-api-key').value.trim();
+            const provider = document.getElementById('provider-select').value;
+            const model = document.getElementById('openrouter-model-select').value;
+            localStorage.setItem('ai_philosopher_builder_key', key);
+            localStorage.setItem('ai_philosopher_builder_provider', provider);
+            localStorage.setItem('ai_philosopher_builder_model', model);
+            const msg = document.getElementById('api-status-msg');
+            msg.textContent = "✓ Key, Provider & Model saved in builder local memory.";
+            msg.classList.remove('hidden');
+            setTimeout(() => msg.classList.add('hidden'), 3500);
+        }
+
+        function copyGoogleSheetSnippet() {
+            const payload = buildFormattedKeyPayload();
+            if (!payload) {
+                alert("Please enter your API Key first.");
+                return;
+            }
+            const snippet = `API_KEY:${encryptText(payload, 5)}`;
+            navigator.clipboard.writeText(snippet);
+            alert(`Copied to clipboard!\n\nPaste this exact value into Cell E1 of your Google Sheet:\n\n${snippet}`);
+        }
+
+        function exportCSV() {
+            const emptyTopics = cardsData.filter(c => !c.main.trim());
+            if (emptyTopics.length > 0) {
+                if (!confirm(`You have ${emptyTopics.length} proposition(s) with an empty main question. Export anyway?`)) {
+                    return;
+                }
+            }
+
+            const payload = buildFormattedKeyPayload();
+            const encryptedKey = payload ? `API_KEY:${encryptText(payload, 5)}` : "";
+
+            let csvContent = "";
+            const headers = ["Main Question", "Follow-up 1", "Follow-up 2", "Follow-up 3", "API_KEY"];
+            csvContent += headers.map(h => escapeCSV(encryptText(h))).join(",") + "\r\n";
+
+            cardsData.forEach((card, idx) => {
+                if (!card.main.trim() && !card.f1.trim() && !card.f2.trim() && !card.f3.trim()) return;
+                // Put encrypted key in Column E of row 1
+                const colE = (idx === 0) ? encryptedKey : "";
+                const row = [
+                    escapeCSV(encryptText(card.main)),
+                    escapeCSV(encryptText(card.f1)),
+                    escapeCSV(encryptText(card.f2)),
+                    escapeCSV(encryptText(card.f3)),
+                    escapeCSV(colE)
+                ];
+                csvContent += row.join(",") + "\r\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ai-philosopher-encrypted-${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function parseCSV(text) {
+            let result = [];
+            let row = [];
+            let cur = '';
+            let inQuote = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+                if (char === '"' && inQuote && nextChar === '"') {
+                    cur += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    row.push(cur);
+                    cur = '';
+                } else if ((char === '\n' || char === '\r') && !inQuote) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    row.push(cur);
+                    if (row.some(cell => cell.trim() !== '')) result.push(row);
+                    row = [];
+                    cur = '';
+                } else {
+                    cur += char;
+                }
+            }
+            row.push(cur);
+            if (row.some(cell => cell.trim() !== '')) result.push(row);
+            return result;
+        }
+
+        function importCSVFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const raw = e.target.result;
+                    const decrypted = decryptText(raw, 5);
+                    const rows = parseCSV(decrypted);
+
+                    if (rows.length < 2) {
+                        alert("Invalid or empty CSV.");
+                        return;
+                    }
+
+                    cardsData = [];
+
+                    // Check for Column E API Key in row 1
+                    if (rows[1] && rows[1].length > 4 && rows[1][4]) {
+                        const val = rows[1][4].trim();
+                        if (val.startsWith("API_KEY:")) {
+                            const decryptedPayload = decryptText(val.replace("API_KEY:", "").trim(), 5);
+                            if (decryptedPayload.startsWith("OPENROUTER:")) {
+                                document.getElementById('provider-select').value = 'openrouter';
+                                const parts = decryptedPayload.replace("OPENROUTER:", "").split(":");
+                                if (parts.length >= 2) {
+                                    document.getElementById('openrouter-model-select').value = parts[0];
+                                    document.getElementById('builder-api-key').value = parts.slice(1).join(":");
+                                } else {
+                                    document.getElementById('builder-api-key').value = parts[0];
+                                }
+                            } else if (decryptedPayload.startsWith("GEMINI:")) {
+                                document.getElementById('provider-select').value = 'gemini';
+                                document.getElementById('builder-api-key').value = decryptedPayload.replace("GEMINI:", "");
+                            } else {
+                                document.getElementById('builder-api-key').value = decryptedPayload;
+                            }
+                            onProviderChange();
+                        }
+                    }
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row.length > 0 && row.some(c => c.trim() !== '')) {
+                            addCard(row[0] || "", row[1] || "", row[2] || "", row[3] || "");
+                        }
+                    }
+
+                    event.target.value = '';
+                } catch (err) {
+                    alert("Error reading file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = () => {
+            const savedKey = localStorage.getItem('ai_philosopher_builder_key') || "";
+            const savedProvider = localStorage.getItem('ai_philosopher_builder_provider') || "openrouter";
+            const savedModel = localStorage.getItem('ai_philosopher_builder_model') || "google/gemini-2.5-flash";
+
+            if (savedKey) document.getElementById('builder-api-key').value = savedKey;
+            document.getElementById('provider-select').value = savedProvider;
+            document.getElementById('openrouter-model-select').value = savedModel;
+            onProviderChange();
+
+            addCard();
+        };
+    </script>
+</body>
+</html>

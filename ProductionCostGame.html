@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classroom Market Simulator</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js for Teacher Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- PeerJS for WebRTC Multi-Device Networking -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  
+  <!-- Canvas Confetti for Celebration Effects -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP HEADER / NAV BAR -->
+  <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-50 px-4 py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-xl text-white shadow-md shadow-indigo-500/20">
+          <i data-lucide="line-chart" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            EconSim: Classroom Market
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Supply, Demand & Price Controls</p>
+        </div>
+      </div>
+
+      <!-- Live Status Header Badges -->
+      <div id="nav-status-bar" class="hidden flex items-center gap-3 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-700/50 text-xs">
+        <span class="flex items-center gap-1.5 text-slate-300">
+          <span id="nav-role-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-700 text-slate-200">Role</span>
+          <span id="nav-user-name" class="font-semibold text-white">---</span>
+        </span>
+        <div class="h-3 w-[1px] bg-slate-700"></div>
+        <span class="text-slate-400 flex items-center gap-1">
+          Code: <strong id="nav-game-code" class="text-indigo-400 font-mono tracking-widest uppercase">---</strong>
+        </span>
+        <div class="h-3 w-[1px] bg-slate-700"></div>
+        <span class="flex items-center gap-1 text-slate-300">
+          Round: <strong id="nav-round-num" class="text-emerald-400">1</strong>
+        </span>
+      </div>
+
+      <button id="reset-app-btn" class="hidden text-xs text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-800">
+        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Exit Game
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+    <!-- VIEW 1: ROLE SELECTION & LOGIN HUB -->
+    <div id="view-landing" class="max-w-xl mx-auto w-full py-8">
+      <div class="text-center mb-8">
+        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-xs font-semibold tracking-wide uppercase">
+          Interactive Economics Experiment
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-3 tracking-tight">Join Market Simulation</h2>
+        <p class="text-slate-400 mt-2 text-sm max-w-md mx-auto">
+          Participate in a real-time market economy. Experience equilibrium, market clearing, price floors, and ceilings live!
+        </p>
+      </div>
+
+      <!-- Role Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Teacher View -->
+        <button onclick="selectRole('teacher')" id="card-teacher" class="role-card border-2 border-slate-700/80 bg-slate-800/50 hover:bg-slate-800 hover:border-indigo-500 p-5 rounded-2xl text-center transition-all duration-200 group flex flex-col items-center">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <i data-lucide="presentation" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-bold text-slate-200 group-hover:text-white">Teacher</h3>
+          <p class="text-xs text-slate-400 mt-1">Host & Control Dashboard</p>
+        </button>
+
+        <!-- Seller View -->
+        <button onclick="selectRole('seller')" id="card-seller" class="role-card border-2 border-slate-700/80 bg-slate-800/50 hover:bg-slate-800 hover:border-emerald-500 p-5 rounded-2xl text-center transition-all duration-200 group flex flex-col items-center">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <i data-lucide="store" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-bold text-slate-200 group-hover:text-white">Seller</h3>
+          <p class="text-xs text-slate-400 mt-1">Produce & Sell Widgets</p>
+        </button>
+
+        <!-- Buyer View -->
+        <button onclick="selectRole('buyer')" id="card-buyer" class="role-card border-2 border-slate-700/80 bg-slate-800/50 hover:bg-slate-800 hover:border-amber-500 p-5 rounded-2xl text-center transition-all duration-200 group flex flex-col items-center">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-bold text-slate-200 group-hover:text-white">Buyer</h3>
+          <p class="text-xs text-slate-400 mt-1">Browse & Purchase</p>
+        </button>
+      </div>
+
+      <!-- Join Form -->
+      <div id="join-form" class="bg-slate-800/80 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4 backdrop-blur-md">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">Your Name / Team Alias</label>
+          <input type="text" id="input-username" placeholder="e.g. Alex Smith, Firm Alpha" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+
+        <div id="room-code-container">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">Classroom Game Code</label>
+          <input type="text" id="input-roomcode" placeholder="4-Letter Code (e.g. ECON)" maxlength="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 uppercase tracking-widest text-center font-mono placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+
+        <button id="btn-enter-room" onclick="enterGame()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
+          <span>Enter Classroom Game</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- VIEW 2: TEACHER DASHBOARD -->
+    <div id="view-teacher" class="hidden space-y-6">
+      <!-- Top Control Bar -->
+      <div class="bg-slate-800 border border-slate-700/80 p-5 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+              Host / Projector Mode
+            </span>
+            <span class="text-slate-400 text-xs">Game Code: <strong id="teacher-code-display" class="text-xl font-mono font-bold text-white tracking-wider ml-1">----</strong></span>
+          </div>
+          <h2 class="text-2xl font-bold text-white mt-1">Classroom Market Control Center</h2>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Round Switcher -->
+          <div class="bg-slate-900 p-1 rounded-xl border border-slate-700/60 flex items-center gap-1">
+            <button onclick="setRound(1)" id="round-1-tab" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow">
+              Round 1: Manual Production
+            </button>
+            <button onclick="setRound(2)" id="round-2-tab" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+              Round 2: Automated Production
+            </button>
+          </div>
+
+          <!-- Market Timer / Pause Toggle -->
+          <button id="toggle-market-btn" onclick="toggleMarketStatus()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Start Market Trading</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Policy Controls Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Price Floor -->
+        <div class="bg-slate-800/80 border border-slate-700/70 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-xs font-bold uppercase text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="arrow-up-right" class="w-4 h-4 text-emerald-400"></i> Price Floor (Min Price)
+            </label>
+            <input type="checkbox" id="toggle-floor" onchange="updatePolicies()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-slate-400">$</span>
+            <input type="number" id="val-floor" value="10.00" step="0.50" min="0" oninput="updatePolicies()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Sellers cannot list widgets below this price.</p>
+        </div>
+
+        <!-- Price Ceiling -->
+        <div class="bg-slate-800/80 border border-slate-700/70 p-4 rounded-xl">
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-xs font-bold uppercase text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="arrow-down-right" class="w-4 h-4 text-rose-400"></i> Price Ceiling (Max Price)
+            </label>
+            <input type="checkbox" id="toggle-ceiling" onchange="updatePolicies()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-slate-400">$</span>
+            <input type="number" id="val-ceiling" value="15.00" step="0.50" min="0" oninput="updatePolicies()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Sellers cannot list widgets above this price.</p>
+        </div>
+
+        <!-- Production Tax / Subsidy -->
+        <div class="bg-slate-800/80 border border-slate-700/70 p-4 rounded-xl">
+          <label class="text-xs font-bold uppercase text-slate-300 flex items-center gap-1.5 mb-2">
+            <i data-lucide="coins" class="w-4 h-4 text-amber-400"></i> Production Tax per Unit
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-slate-400">$</span>
+            <input type="number" id="val-tax" value="0.00" step="0.25" min="0" oninput="updatePolicies()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Added directly to seller unit cost of production.</p>
+        </div>
+      </div>
+
+      <!-- Main Live Analytics Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Live Market Price Chart -->
+        <div class="lg:col-span-2 bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="font-bold text-white text-base">Live Price & Volume Tracker</h3>
+              <p class="text-xs text-slate-400">Real-time trade prices & supply/demand levels</p>
+            </div>
+            <div class="flex gap-2">
+              <span class="text-xs px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold rounded-lg flex items-center gap-1">
+                Avg Price: <strong id="stat-avg-price" class="font-mono">$0.00</strong>
+              </span>
+              <span class="text-xs px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold rounded-lg flex items-center gap-1">
+                Trades: <strong id="stat-total-trades" class="font-mono">0</strong>
+              </span>
+            </div>
+          </div>
+
+          <div class="h-64 md:h-80 w-full relative">
+            <canvas id="marketChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Active Participants & Order Book Overview -->
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 flex flex-col">
+          <h3 class="font-bold text-white text-base mb-1">Active Market Roster</h3>
+          <p class="text-xs text-slate-400 mb-4">Connected Buyers and Sellers</p>
+
+          <!-- Tab Selector for Roster -->
+          <div class="flex border-b border-slate-700 mb-3">
+            <button id="tab-sellers-btn" onclick="showRosterTab('sellers')" class="px-3 py-1.5 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 w-1/2">
+              Sellers (<span id="count-sellers">0</span>)
+            </button>
+            <button id="tab-buyers-btn" onclick="showRosterTab('buyers')" class="px-3 py-1.5 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 w-1/2">
+              Buyers (<span id="count-buyers">0</span>)
+            </button>
+          </div>
+
+          <!-- Roster Lists -->
+          <div id="roster-sellers-list" class="flex-1 overflow-y-auto max-h-64 space-y-2 pr-1 custom-scrollbar">
+            <p class="text-xs text-slate-500 italic text-center py-4">No sellers connected yet.</p>
+          </div>
+
+          <div id="roster-buyers-list" class="hidden flex-1 overflow-y-auto max-h-64 space-y-2 pr-1 custom-scrollbar">
+            <p class="text-xs text-slate-500 italic text-center py-4">No buyers connected yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- VIEW 3: SELLER DASHBOARD -->
+    <div id="view-seller" class="hidden space-y-6">
+      <!-- Seller Status Header -->
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <i data-lucide="store" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <h2 id="seller-name-title" class="text-xl font-bold text-white">Seller Studio</h2>
+            <p class="text-xs text-slate-400">Manufacture & List Products</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700/60">
+          <div class="text-center">
+            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Cash Balance</p>
+            <p id="seller-balance" class="text-lg font-bold text-emerald-400 font-mono">$100.00</p>
+          </div>
+          <div class="h-8 w-[1px] bg-slate-800"></div>
+          <div class="text-center">
+            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Inventory</p>
+            <p id="seller-inventory" class="text-lg font-bold text-indigo-400 font-mono">0 units</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Seller Workstation -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Production Center -->
+        <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-white flex items-center gap-2">
+              <i data-lucide="hammer" class="w-4 h-4 text-amber-400"></i> Manufacturing Plant
+            </h3>
+            <span id="seller-round-badge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-300">
+              Round 1
+            </span>
+          </div>
+
+          <!-- Unit Cost Info -->
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50 flex justify-between items-center text-xs">
+            <span class="text-slate-400">Unit Production Cost:</span>
+            <span id="seller-unit-cost" class="font-mono font-bold text-amber-400">$3.00</span>
+          </div>
+
+          <!-- Round 1: Manual Production Area -->
+          <div id="seller-manual-prod" class="space-y-3">
+            <p class="text-xs text-slate-400">
+              Type the quality assurance phrase accurately to produce 1 Widget:
+            </p>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-700 font-mono text-center text-xs font-semibold text-indigo-300 select-none tracking-wider" id="typing-target-text">
+              PRODUCE WIDGET NOW
+            </div>
+            <input type="text" id="typing-input" oninput="checkTypingProduction()" placeholder="Type phrase exactly here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <!-- Round 2: Automated Factory Area -->
+          <div id="seller-auto-prod" class="hidden space-y-3">
+            <p class="text-xs text-slate-400">
+              Automated Assembly Line Active. Purchase upgrades to increase output speed!
+            </p>
+            <button onclick="purchaseAutoFactory()" id="btn-buy-factory" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+              <span>Buy Automated Machine ($25.00)</span>
+            </button>
+            <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700">
+              <div id="factory-progress-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-2.5 rounded-full w-0 transition-all duration-200"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Listing & Storefront Controls -->
+        <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white flex items-center gap-2 mb-3">
+              <i data-lucide="tag" class="w-4 h-4 text-emerald-400"></i> Active Storefront Offer
+            </h3>
+
+            <!-- Active Policy Warning Banner -->
+            <div id="seller-policy-warning" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl mb-3 text-xs text-amber-300">
+              Policy Alert active. Check floor/ceiling rules before setting prices.
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Set Asking Price per Widget</label>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-slate-400">$</span>
+                  <input type="number" id="seller-ask-price" value="8.00" step="0.25" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-lg font-mono font-bold text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="updateSellerListing()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Post Listing</span>
+                </button>
+                <button onclick="removeSellerListing()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center transition-all">
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Listing Status Card -->
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-700/80 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] text-slate-400 uppercase font-semibold">Current Marketplace Offer</p>
+              <p id="seller-status-text" class="text-sm font-semibold text-white mt-0.5">Not Currently Listed</p>
+            </div>
+            <div id="seller-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+              Offline
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- VIEW 4: BUYER DASHBOARD -->
+    <div id="view-buyer" class="hidden space-y-6">
+      <!-- Buyer Status Bar -->
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+            <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <h2 id="buyer-name-title" class="text-xl font-bold text-white">Buyer Terminal</h2>
+            <p class="text-xs text-slate-400">Browse Live Sellers & One-Click Purchase</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700/60">
+          <div class="text-center">
+            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Wallet Balance</p>
+            <p id="buyer-balance" class="text-lg font-bold text-emerald-400 font-mono">$150.00</p>
+          </div>
+          <div class="h-8 w-[1px] bg-slate-800"></div>
+          <div class="text-center">
+            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Widgets Owned</p>
+            <p id="buyer-inventory" class="text-lg font-bold text-indigo-400 font-mono">0 units</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marketplace Listings Grid -->
+      <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 space-y-4 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h3 class="font-bold text-white text-lg flex items-center gap-2">
+              <i data-lucide="store" class="w-5 h-5 text-indigo-400"></i> Live Seller Marketplace Order Book
+            </h3>
+            <p class="text-xs text-slate-400">Choose a seller directly to execute a one-click purchase</p>
+          </div>
+          <span class="text-xs bg-slate-900 border border-slate-700 text-slate-300 font-semibold px-3 py-1 rounded-full flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Active Sellers: <strong id="buyer-active-sellers-count" class="text-white font-mono">0</strong>
+          </span>
+        </div>
+
+        <!-- Order Book Marketplace List -->
+        <div id="buyer-marketplace-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-2">
+          <!-- Dynamically populated seller cards -->
+          <div class="col-span-full py-12 text-center text-slate-500">
+            <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+            <p class="text-sm font-medium">No active seller listings available right now.</p>
+            <p class="text-xs text-slate-600 mt-1">Sellers will appear here as soon as they set prices and produce inventory.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Global Application State
+    const state = {
+      role: null, // 'teacher', 'seller', 'buyer'
+      username: '',
+      roomCode: '',
+      peer: null,
+      peerConnections: {}, // Store teacher connections or client connections
+      broadcastChannel: null,
+      
+      // Game State
+      round: 1,
+      isMarketOpen: false,
+      policies: {
+        priceFloorActive: false,
+        priceFloorVal: 10.00,
+        priceCeilingActive: false,
+        priceCeilingVal: 15.00,
+        taxVal: 0.00
+      },
+      
+      // User Profile Data
+      seller: {
+        balance: 100.00,
+        inventory: 0,
+        askPrice: 8.00,
+        isListed: false,
+        baseUnitCost: 3.00,
+        autoFactories: 0
+      },
+      buyer: {
+        balance: 150.00,
+        inventory: 0
+      },
+
+      // Global Directory State (Aggregated by Host or Shared)
+      sellersMap: {}, // sellerId -> { id, name, price, inventory }
+      buyersMap: {},  // buyerId -> { id, name, inventory, balance }
+      tradesHistory: []
+    };
+
+    // Chart.js Object Reference
+    let marketChart = null;
+
+    // Phrase Database for Round 1 Manual Production
+    const typingPhrases = [
+      "PRODUCE WIDGET NOW",
+      "SUPPLY AND DEMAND EQUILIBRIUM",
+      "EFFICIENT MARKET ALLOCATION",
+      "MAXIMIZE PRODUCER SURPLUS",
+      "MARGINAL REVENUE EQUALS COST"
+    ];
+    let currentPhraseIndex = 0;
+
+    // Initialize Application
+    window.onload = function() {
+      lucide.createIcons();
+      initBroadcastChannel();
+    };
+
+    // Switch Role UI Selector
+    function selectRole(role) {
+      state.role = role;
+      document.querySelectorAll('.role-card').forEach(card => {
+        card.classList.remove('border-indigo-500', 'border-emerald-500', 'border-amber-500', 'bg-slate-800');
+        card.classList.add('border-slate-700/80', 'bg-slate-800/50');
+      });
+
+      const selected = document.getElementById(`card-${role}`);
+      if (selected) {
+        const activeBorder = role === 'teacher' ? 'border-indigo-500' : (role === 'seller' ? 'border-emerald-500' : 'border-amber-500');
+        selected.classList.remove('border-slate-700/80', 'bg-slate-800/50');
+        selected.classList.add(activeBorder, 'bg-slate-800');
+      }
+
+      const roomContainer = document.getElementById('room-code-container');
+      if (role === 'teacher') {
+        roomContainer.classList.add('hidden');
+      } else {
+        roomContainer.classList.remove('hidden');
+      }
+    }
+
+    // Enter Game Session
+    function enterGame() {
+      const nameInput = document.getElementById('input-username').value.trim();
+      const codeInput = document.getElementById('input-roomcode').value.trim().toUpperCase();
+
+      if (!state.role) {
+        alert("Please select a role (Teacher, Seller, or Buyer) first.");
+        return;
+      }
+
+      if (state.role !== 'teacher' && !nameInput) {
+        alert("Please enter your name or team alias.");
+        return;
+      }
+
+      if (state.role !== 'teacher' && !codeInput) {
+        alert("Please enter the 4-letter Game Code provided by your teacher.");
+        return;
+      }
+
+      state.username = nameInput || "Teacher";
+      state.roomCode = state.role === 'teacher' ? generateRoomCode() : codeInput;
+
+      // Update Header Navigation
+      document.getElementById('nav-role-badge').textContent = state.role;
+      document.getElementById('nav-user-name').textContent = state.username;
+      document.getElementById('nav-game-code').textContent = state.roomCode;
+      document.getElementById('nav-status-bar').classList.remove('hidden');
+      document.getElementById('reset-app-btn').classList.remove('hidden');
+
+      // Initialize WebRTC / Networking
+      initPeerJS();
+
+      // View Navigation
+      document.getElementById('view-landing').classList.add('hidden');
+
+      if (state.role === 'teacher') {
+        document.getElementById('view-teacher').classList.remove('hidden');
+        document.getElementById('teacher-code-display').textContent = state.roomCode;
+        initTeacherChart();
+      } else if (state.role === 'seller') {
+        document.getElementById('view-seller').classList.remove('hidden');
+        document.getElementById('seller-name-title').textContent = `${state.username}'s Storefront`;
+        updateSellerUI();
+      } else if (state.role === 'buyer') {
+        document.getElementById('view-buyer').classList.remove('hidden');
+        document.getElementById('buyer-name-title').textContent = `${state.username}'s Terminal`;
+        updateBuyerUI();
+        startBuyerIncomeTimer();
+      }
+
+      // Announce Presence
+      broadcastState({
+        type: 'JOIN',
+        role: state.role,
+        username: state.username,
+        peerId: state.peer ? state.peer.id : null
+      });
+    }
+
+    // Helper: Generate Random Room Code
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let code = '';
+      for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // BroadcastChannel Initialization (Local multi-tab sync fallback)
+    function initBroadcastChannel() {
+      if ('BroadcastChannel' in window) {
+        state.broadcastChannel = new BroadcastChannel('econsim_market_channel');
+        state.broadcastChannel.onmessage = (event) => handleIncomingData(event.data);
+      }
+    }
+
+    // PeerJS Multi-Device WebRTC Sync
+    function initPeerJS() {
+      const peerId = `${state.roomCode.toLowerCase()}-${state.role}-${Math.random().toString(36).substring(2, 7)}`;
+      state.peer = new Peer(peerId, { debug: 1 });
+
+      state.peer.on('open', (id) => {
+        console.log("PeerJS Connected. ID:", id);
+      });
+
+      state.peer.on('connection', (conn) => {
+        conn.on('data', (data) => handleIncomingData(data));
+      });
+
+      state.peer.on('error', (err) => {
+        console.warn("PeerJS Warning/Fallback to BroadcastChannel:", err);
+      });
+    }
+
+    // Send Broadcast to All Nodes
+    function broadcastState(payload) {
+      payload.senderCode = state.roomCode;
+      
+      // Send via BroadcastChannel
+      if (state.broadcastChannel) {
+        state.broadcastChannel.postMessage(payload);
+      }
+    }
+
+    // Handle Incoming Network Messages
+    function handleIncomingData(data) {
+      if (data.senderCode !== state.roomCode) return; // Filter out other game instances
+
+      switch(data.type) {
+        case 'JOIN':
+          if (state.role === 'teacher') {
+            registerParticipant(data);
+          }
+          break;
+
+        case 'MARKET_STATUS':
+          state.isMarketOpen = data.isOpen;
+          state.round = data.round;
+          if (state.role === 'teacher') {
+            document.getElementById('toggle-market-btn').innerHTML = state.isMarketOpen ? 
+              `<i data-lucide="pause" class="w-4 h-4"></i><span>Pause Market</span>` : 
+              `<i data-lucide="play" class="w-4 h-4"></i><span>Start Market Trading</span>`;
+            lucide.createIcons();
+          }
+          syncRoundUI();
+          break;
+
+        case 'POLICY_UPDATE':
+          state.policies = data.policies;
+          if (state.role === 'seller') updateSellerUI();
+          break;
+
+        case 'SELLER_UPDATE':
+          state.sellersMap[data.sellerId] = {
+            id: data.sellerId,
+            name: data.username,
+            price: data.price,
+            inventory: data.inventory,
+            isListed: data.isListed
+          };
+          updateTeacherRoster();
+          if (state.role === 'buyer') renderBuyerMarketplace();
+          break;
+
+        case 'BUYER_UPDATE':
+          state.buyersMap[data.buyerId] = {
+            id: data.buyerId,
+            name: data.username,
+            inventory: data.inventory,
+            balance: data.balance
+          };
+          updateTeacherRoster();
+          break;
+
+        case 'EXECUTE_PURCHASE':
+          // Buyer requested to buy from a seller
+          if (state.role === 'seller' && data.sellerId === state.peer?.id) {
+            processSaleToBuyer(data.buyerId, data.buyerName, data.agreedPrice);
+          }
+          break;
+
+        case 'TRADE_CONFIRMED':
+          // Confirmed trade recorded globally
+          state.tradesHistory.push(data.trade);
+          if (state.role === 'teacher') recordTradeChart(data.trade);
+          
+          const currentBuyerId = state.peer ? state.peer.id : 'local_buyer';
+          if (state.role === 'buyer' && data.buyerId === currentBuyerId) {
+            state.buyer.balance -= data.trade.price;
+            state.buyer.inventory += 1;
+            updateBuyerUI();
+            notifyBuyerState();
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+          }
+          break;
+      }
+    }
+
+    // Teacher Control: Toggle Market Open/Pause
+    function toggleMarketStatus() {
+      state.isMarketOpen = !state.isMarketOpen;
+      broadcastState({
+        type: 'MARKET_STATUS',
+        isOpen: state.isMarketOpen,
+        round: state.round
+      });
+
+      const btn = document.getElementById('toggle-market-btn');
+      btn.innerHTML = state.isMarketOpen ? 
+        `<i data-lucide="pause" class="w-4 h-4"></i><span>Pause Market</span>` : 
+        `<i data-lucide="play" class="w-4 h-4"></i><span>Start Market Trading</span>`;
+      btn.className = state.isMarketOpen ?
+        "bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all" :
+        "bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all";
+      lucide.createIcons();
+    }
+
+    // Teacher Control: Set Round
+    function setRound(roundNum) {
+      state.round = roundNum;
+      document.getElementById('nav-round-num').textContent = roundNum;
+
+      const r1 = document.getElementById('round-1-tab');
+      const r2 = document.getElementById('round-2-tab');
+
+      if (roundNum === 1) {
+        r1.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow";
+        r2.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+      } else {
+        r2.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow";
+        r1.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+      }
+
+      broadcastState({
+        type: 'MARKET_STATUS',
+        isOpen: state.isMarketOpen,
+        round: state.round
+      });
+    }
+
+    // Sync Round View Across Clients
+    function syncRoundUI() {
+      document.getElementById('nav-round-num').textContent = state.round;
+
+      if (state.role === 'seller') {
+        document.getElementById('seller-round-badge').textContent = `Round ${state.round}`;
+        if (state.round === 1) {
+          document.getElementById('seller-manual-prod').classList.remove('hidden');
+          document.getElementById('seller-auto-prod').classList.add('hidden');
+        } else {
+          document.getElementById('seller-manual-prod').classList.add('hidden');
+          document.getElementById('seller-auto-prod').classList.remove('hidden');
+        }
+      }
+    }
+
+    // Teacher Control: Update Price Controls / Tax Policy
+    function updatePolicies() {
+      state.policies.priceFloorActive = document.getElementById('toggle-floor').checked;
+      state.policies.priceFloorVal = parseFloat(document.getElementById('val-floor').value) || 0;
+      state.policies.priceCeilingActive = document.getElementById('toggle-ceiling').checked;
+      state.policies.priceCeilingVal = parseFloat(document.getElementById('val-ceiling').value) || 0;
+      state.policies.taxVal = parseFloat(document.getElementById('val-tax').value) || 0;
+
+      broadcastState({
+        type: 'POLICY_UPDATE',
+        policies: state.policies
+      });
+    }
+
+    // Seller Logic: Manual Production Typing Check
+    function checkTypingProduction() {
+      if (!state.isMarketOpen) {
+        alert("Market is currently paused by the teacher.");
+        document.getElementById('typing-input').value = '';
+        return;
+      }
+
+      const input = document.getElementById('typing-input');
+      const target = typingPhrases[currentPhraseIndex];
+
+      if (input.value.trim().toUpperCase() === target) {
+        // Calculate Total Production Cost with Tax
+        const totalUnitCost = state.seller.baseUnitCost + state.policies.taxVal;
+        
+        if (state.seller.balance < totalUnitCost) {
+          alert("Insufficient funds to produce widget!");
+          input.value = '';
+          return;
+        }
+
+        state.seller.balance -= totalUnitCost;
+        state.seller.inventory += 1;
+        input.value = '';
+
+        // Cycle Phrase
+        currentPhraseIndex = (currentPhraseIndex + 1) % typingPhrases.length;
+        document.getElementById('typing-target-text').textContent = typingPhrases[currentPhraseIndex];
+
+        updateSellerUI();
+        notifySellerState();
+      }
+    }
+
+    // Seller Logic: Automated Production Machine
+    function purchaseAutoFactory() {
+      const upgradeCost = 25.00;
+      if (state.seller.balance >= upgradeCost) {
+        state.seller.balance -= upgradeCost;
+        state.seller.autoFactories += 1;
+        updateSellerUI();
+
+        if (state.seller.autoFactories === 1) {
+          startAutoProductionLoop();
+        }
+      } else {
+        alert("Insufficient balance for factory upgrade ($25.00 required).");
+      }
+    }
+
+    function startAutoProductionLoop() {
+      let progress = 0;
+      setInterval(() => {
+        if (!state.isMarketOpen || state.seller.autoFactories === 0) return;
+
+        progress += (state.seller.autoFactories * 15);
+        if (progress >= 100) {
+          progress = 0;
+          const totalUnitCost = state.seller.baseUnitCost + state.policies.taxVal;
+          if (state.seller.balance >= totalUnitCost) {
+            state.seller.balance -= totalUnitCost;
+            state.seller.inventory += 1;
+            updateSellerUI();
+            notifySellerState();
+          }
+        }
+        document.getElementById('factory-progress-bar').style.width = `${progress}%`;
+      }, 300);
+    }
+
+    // Seller Logic: Post Asking Price
+    function updateSellerListing() {
+      const ask = parseFloat(document.getElementById('seller-ask-price').value);
+
+      if (isNaN(ask) || ask <= 0) {
+        alert("Please enter a valid listing price.");
+        return;
+      }
+
+      // Check Policy Floor & Ceiling Constraints
+      if (state.policies.priceFloorActive && ask < state.policies.priceFloorVal) {
+        alert(`Price Floor Active! Minimum price allowed is $${state.policies.priceFloorVal.toFixed(2)}`);
+        return;
+      }
+
+      if (state.policies.priceCeilingActive && ask > state.policies.priceCeilingVal) {
+        alert(`Price Ceiling Active! Maximum price allowed is $${state.policies.priceCeilingVal.toFixed(2)}`);
+        return;
+      }
+
+      state.seller.askPrice = ask;
+      state.seller.isListed = true;
+      updateSellerUI();
+      notifySellerState();
+    }
+
+    function removeSellerListing() {
+      state.seller.isListed = false;
+      updateSellerUI();
+      notifySellerState();
+    }
+
+    function notifySellerState() {
+      broadcastState({
+        type: 'SELLER_UPDATE',
+        sellerId: state.peer ? state.peer.id : 'local_seller',
+        username: state.username,
+        price: state.seller.askPrice,
+        inventory: state.seller.inventory,
+        isListed: state.seller.isListed
+      });
+    }
+
+    function updateSellerUI() {
+      document.getElementById('seller-balance').textContent = `$${state.seller.balance.toFixed(2)}`;
+      document.getElementById('seller-inventory').textContent = `${state.seller.inventory} units`;
+      
+      const effectiveCost = state.seller.baseUnitCost + state.policies.taxVal;
+      document.getElementById('seller-unit-cost').textContent = `$${effectiveCost.toFixed(2)} (Base: $${state.seller.baseUnitCost.toFixed(2)} + Tax: $${state.policies.taxVal.toFixed(2)})`;
+
+      const statusText = document.getElementById('seller-status-text');
+      const statusBadge = document.getElementById('seller-status-badge');
+
+      if (state.seller.isListed) {
+        statusText.textContent = `Listed at $${state.seller.askPrice.toFixed(2)} per unit`;
+        statusBadge.textContent = "Active Listing";
+        statusBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      } else {
+        statusText.textContent = "Not Currently Listed";
+        statusBadge.textContent = "Offline";
+        statusBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+      }
+
+      const warningBanner = document.getElementById('seller-policy-warning');
+      if (state.policies.priceFloorActive || state.policies.priceCeilingActive) {
+        warningBanner.classList.remove('hidden');
+      } else {
+        warningBanner.classList.add('hidden');
+      }
+    }
+
+    // BUYER LOGIC: Dynamic One-Click Marketplace Rendering
+    function renderBuyerMarketplace() {
+      const container = document.getElementById('buyer-marketplace-list');
+      const sellers = Object.values(state.sellersMap).filter(s => s.isListed && s.inventory > 0);
+
+      document.getElementById('buyer-active-sellers-count').textContent = sellers.length;
+
+      if (sellers.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-500">
+            <i data-lucide="store" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
+            <p class="text-sm font-medium">No active seller listings available right now.</p>
+            <p class="text-xs text-slate-600 mt-1">Sellers will appear here as soon as they set prices and produce inventory.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      // Sort by Lowest Price First (Market Order Book style)
+      sellers.sort((a, b) => a.price - b.price);
+
+      container.innerHTML = sellers.map(seller => `
+        <div class="bg-slate-900 border border-slate-700/80 hover:border-indigo-500/50 p-4 rounded-xl flex flex-col justify-between space-y-3 transition-all shadow-md">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-white text-base">${seller.name}</h4>
+              <span class="text-[11px] text-slate-400 font-mono">Stock: <strong class="text-indigo-400">${seller.inventory} units</strong></span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs uppercase text-slate-400 font-semibold block">Asking Price</span>
+              <span class="text-xl font-extrabold text-emerald-400 font-mono">$${seller.price.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <button onclick="executeOneClickBuy('${seller.id}', '${seller.name}', ${seller.price})" 
+            class="w-full bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95">
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+            <span>Buy for $${seller.price.toFixed(2)}</span>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // Buyer Action: One-Click Purchase Execution
+    function executeOneClickBuy(sellerId, sellerName, price) {
+      if (!state.isMarketOpen) {
+        alert("Market is currently paused by the teacher.");
+        return;
+      }
+
+      if (state.buyer.balance < price) {
+        alert(`Insufficient wallet balance! Item costs $${price.toFixed(2)}, but you have $${state.buyer.balance.toFixed(2)}.`);
+        return;
+      }
+
+      // Send Instant Order to Specific Seller
+      broadcastState({
+        type: 'EXECUTE_PURCHASE',
+        sellerId: sellerId,
+        buyerId: state.peer ? state.peer.id : 'local_buyer',
+        buyerName: state.username,
+        agreedPrice: price
+      });
+    }
+
+    // Seller Action: Process Order Received from Buyer
+    function processSaleToBuyer(buyerId, buyerName, price) {
+      if (state.seller.inventory <= 0) {
+        alert("Attempted sale failed: Item out of stock.");
+        return;
+      }
+
+      // Complete Transaction
+      state.seller.inventory -= 1;
+      state.seller.balance += price;
+
+      updateSellerUI();
+      notifySellerState();
+
+      const tradeData = {
+        id: Math.random().toString(36).substring(2, 9),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        price: price,
+        sellerName: state.username,
+        buyerName: buyerName,
+        buyerId: buyerId
+      };
+
+      // Broadcast Confirmation to Whole Classroom
+      broadcastState({
+        type: 'TRADE_CONFIRMED',
+        buyerId: buyerId,
+        trade: tradeData
+      });
+
+      confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+    }
+
+    // Buyer Notification Update
+    function updateBuyerUI() {
+      document.getElementById('buyer-balance').textContent = `$${state.buyer.balance.toFixed(2)}`;
+      document.getElementById('buyer-inventory').textContent = `${state.buyer.inventory} units`;
+    }
+
+    function notifyBuyerState() {
+      broadcastState({
+        type: 'BUYER_UPDATE',
+        buyerId: state.peer ? state.peer.id : 'local_buyer',
+        username: state.username,
+        inventory: state.buyer.inventory,
+        balance: state.buyer.balance
+      });
+    }
+
+    function startBuyerIncomeTimer() {
+      // Monthly income: Buyer gets $50 deposited every 30 seconds automatically
+      setInterval(() => {
+        if (state.role === 'buyer') {
+          state.buyer.balance += 50.00;
+          updateBuyerUI();
+          notifyBuyerState();
+        }
+      }, 30000);
+    }
+
+    // Register Connected Participants on Teacher Screen
+    function registerParticipant(data) {
+      if (data.role === 'seller') {
+        state.sellersMap[data.peerId || data.username] = {
+          id: data.peerId || data.username,
+          name: data.username,
+          price: 0,
+          inventory: 0,
+          isListed: false
+        };
+      } else if (data.role === 'buyer') {
+        state.buyersMap[data.peerId || data.username] = {
+          id: data.peerId || data.username,
+          name: data.username,
+          inventory: 0,
+          balance: 150.00
+        };
+      }
+      updateTeacherRoster();
+    }
+
+    function updateTeacherRoster() {
+      if (state.role !== 'teacher') return;
+
+      const sellers = Object.values(state.sellersMap);
+      const buyers = Object.values(state.buyersMap);
+
+      document.getElementById('count-sellers').textContent = sellers.length;
+      document.getElementById('count-buyers').textContent = buyers.length;
+
+      const sellersList = document.getElementById('roster-sellers-list');
+      if (sellers.length === 0) {
+        sellersList.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">No sellers connected yet.</p>`;
+      } else {
+        sellersList.innerHTML = sellers.map(s => `
+          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-bold text-white">${s.name}</p>
+              <p class="text-[10px] text-slate-400">Stock: ${s.inventory} units</p>
+            </div>
+            <div class="text-right">
+              <span class="font-mono font-bold text-emerald-400">${s.isListed ? `$${s.price.toFixed(2)}` : 'Unlisted'}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const buyersList = document.getElementById('roster-buyers-list');
+      if (buyers.length === 0) {
+        buyersList.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">No buyers connected yet.</p>`;
+      } else {
+        buyersList.innerHTML = buyers.map(b => `
+          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-bold text-white">${b.name}</p>
+              <p class="text-[10px] text-slate-400">Inventory: ${b.inventory} units</p>
+            </div>
+            <div class="text-right">
+              <span class="font-mono font-bold text-indigo-400">$${b.balance.toFixed(2)}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function showRosterTab(tab) {
+      const sellersList = document.getElementById('roster-sellers-list');
+      const buyersList = document.getElementById('roster-buyers-list');
+      const btnSellers = document.getElementById('tab-sellers-btn');
+      const btnBuyers = document.getElementById('tab-buyers-btn');
+
+      if (tab === 'sellers') {
+        sellersList.classList.remove('hidden');
+        buyersList.classList.add('hidden');
+        btnSellers.className = "px-3 py-1.5 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 w-1/2";
+        btnBuyers.className = "px-3 py-1.5 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 w-1/2";
+      } else {
+        buyersList.classList.remove('hidden');
+        sellersList.classList.add('hidden');
+        btnBuyers.className = "px-3 py-1.5 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 w-1/2";
+        btnSellers.className = "px-3 py-1.5 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 w-1/2";
+      }
+    }
+
+    // Teacher Chart Initialization
+    function initTeacherChart() {
+      const ctx = document.getElementById('marketChart').getContext('2d');
+      marketChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Executed Trade Price ($)',
+            data: [],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: '#10b981'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              ticks: { color: '#94a3b8', callback: (val) => `$${val}` }
+            },
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              ticks: { color: '#94a3b8' }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#f8fafc' } }
+          }
+        }
+      });
+    }
+
+    // Record Trades on Teacher Graph
+    function recordTradeChart(trade) {
+      if (!marketChart) return;
+
+      marketChart.data.labels.push(trade.time);
+      marketChart.data.datasets[0].data.push(trade.price);
+      marketChart.update();
+
+      // Update Summary Statistics
+      const prices = marketChart.data.datasets[0].data;
+      const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+      document.getElementById('stat-avg-price').textContent = `$${avg.toFixed(2)}`;
+      document.getElementById('stat-total-trades').textContent = prices.length;
+    }
+
+    // Exit Game Button Reset
+    document.getElementById('reset-app-btn').addEventListener('click', () => {
+      if (confirm("Are you sure you want to exit the current market game?")) {
+        window.location.reload();
+      }
+    });
+  </script>
+</body>
+</html>
