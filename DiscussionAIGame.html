@@ -237,6 +237,24 @@
         .glow-cyan {
             text-shadow: 0 0 10px rgba(0, 242, 255, 0.7), 0 0 20px rgba(0, 242, 255, 0.3);
         }
+        .glow-cyan-subtle {
+            text-shadow: 0 0 12px rgba(0, 242, 255, 0.45);
+        }
+
+        /* Inquiry Interactive Cards */
+        .inquiry-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .inquiry-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 242, 255, 0.18);
+        }
+        .inquiry-card.is-active {
+            border-color: #00F2FF !important;
+            background: rgba(0, 242, 255, 0.12) !important;
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.25), inset 0 0 15px rgba(0, 242, 255, 0.08) !important;
+        }
 
         /* Wave bar for recording */
         @keyframes pulse-wave {
@@ -479,44 +497,90 @@
 
                 <!-- TOPIC CARD -->
                 <div class="hud-panel p-6 sm:p-8 rounded-xl bracket-box">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-xs font-mono text-pod-cyan bg-pod-screen-dark px-3 py-1 rounded border border-pod-cyan/50 tracking-wider">
-                            PROPOSITION REF: <span id="disp-topic-ref">001</span>
-                        </span>
-                        <span class="text-xs font-mono text-gray-400 uppercase tracking-widest">Phase 1: Oral Deliberation</span>
-                    </div>
-
-                    <h3 class="text-[11px] font-mono uppercase tracking-widest text-pod-cyan mb-1.5">Central Proposition:</h3>
-                    <p id="disp-main-question" class="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white leading-snug"></p>
-
-                    <!-- 3 Sub-Questions / Inquiries -->
-                    <div class="mt-6 pt-5 border-t border-pod-cyan/30">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">
-                                Sub-Questions & Inquiries <span class="text-gray-400 font-normal lowercase">(click when explored)</span>:
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pod-cyan shadow-[0_0_10px_#00F2FF] animate-pulse"></span>
+                            <span class="text-xs font-mono font-bold text-pod-cyan tracking-widest uppercase">
+                                PROPOSITION REF: <span id="disp-topic-ref" class="text-white">001</span>
                             </span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 01</span>
-                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
-                                </div>
-                                <p id="disp-sub-q1" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                        <span class="text-xs font-mono text-gray-300 uppercase tracking-widest bg-black/40 px-3 py-1 rounded border border-white/10">
+                            Phase 1: Oral Deliberation
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="text-xs font-mono uppercase tracking-widest text-pod-cyan font-bold block mb-1">Central Proposition:</span>
+                        <p id="disp-main-question" class="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-white leading-snug glow-cyan-subtle"></p>
+                    </div>
+
+                    <!-- 3 Sub-Questions / Inquiries -->
+                    <div class="mt-8 pt-6 border-t border-pod-cyan/30">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-pod-cyan text-sm">◈</span>
+                                <span class="text-xs sm:text-sm font-mono font-bold text-pod-cyan uppercase tracking-wider">
+                                    Guided Inquiries & Sub-Questions
+                                </span>
                             </div>
-                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 02</span>
-                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
+                            <span class="text-[11px] font-mono text-gray-400">
+                                Tap an inquiry during debate to mark <strong class="text-pod-cyan">✓ EXPLORED</strong>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
+                            <!-- Inquiry 01 -->
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card group cursor-pointer p-5 sm:p-6 rounded-xl bg-pod-screen-dark/95 border-2 border-pod-cyan/30 hover:border-pod-cyan select-none flex flex-col justify-between shadow-md">
+                                <div>
+                                    <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-pod-cyan/25">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inquiry-dot w-2 h-2 rounded-full bg-pod-cyan/70 group-hover:bg-pod-cyan group-hover:shadow-[0_0_8px_#00F2FF] transition-all"></span>
+                                            <span class="text-xs font-mono font-bold text-pod-cyan tracking-wider">INQUIRY 01</span>
+                                        </div>
+                                        <span class="inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-black/60 border border-pod-cyan/30 text-gray-400 transition-all">PENDING</span>
+                                    </div>
+                                    <p id="disp-sub-q1" class="text-base sm:text-lg font-display font-semibold text-white leading-relaxed"></p>
                                 </div>
-                                <p id="disp-sub-q2" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                                <div class="pt-3 mt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                                    <span class="text-pod-cyan/70 tracking-wider">DELIBERATION TARGET</span>
+                                    <span class="inquiry-hint text-gray-500 group-hover:text-pod-cyan transition-colors">Tap to toggle</span>
+                                </div>
                             </div>
-                            <div onclick="toggleSubQuestion(this)" class="inquiry-card cursor-pointer p-4 rounded-lg bg-pod-screen-dark/90 border border-pod-cyan/30 hover:border-pod-cyan transition-all select-none">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-[11px] font-mono font-bold text-pod-cyan">INQUIRY 03</span>
-                                    <span class="inquiry-status text-[10px] font-mono text-gray-500">PENDING</span>
+
+                            <!-- Inquiry 02 -->
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card group cursor-pointer p-5 sm:p-6 rounded-xl bg-pod-screen-dark/95 border-2 border-pod-cyan/30 hover:border-pod-cyan select-none flex flex-col justify-between shadow-md">
+                                <div>
+                                    <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-pod-cyan/25">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inquiry-dot w-2 h-2 rounded-full bg-pod-cyan/70 group-hover:bg-pod-cyan group-hover:shadow-[0_0_8px_#00F2FF] transition-all"></span>
+                                            <span class="text-xs font-mono font-bold text-pod-cyan tracking-wider">INQUIRY 02</span>
+                                        </div>
+                                        <span class="inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-black/60 border border-pod-cyan/30 text-gray-400 transition-all">PENDING</span>
+                                    </div>
+                                    <p id="disp-sub-q2" class="text-base sm:text-lg font-display font-semibold text-white leading-relaxed"></p>
                                 </div>
-                                <p id="disp-sub-q3" class="text-xs sm:text-sm text-gray-200 font-tech leading-relaxed"></p>
+                                <div class="pt-3 mt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                                    <span class="text-pod-cyan/70 tracking-wider">DELIBERATION TARGET</span>
+                                    <span class="inquiry-hint text-gray-500 group-hover:text-pod-cyan transition-colors">Tap to toggle</span>
+                                </div>
+                            </div>
+
+                            <!-- Inquiry 03 -->
+                            <div onclick="toggleSubQuestion(this)" class="inquiry-card group cursor-pointer p-5 sm:p-6 rounded-xl bg-pod-screen-dark/95 border-2 border-pod-cyan/30 hover:border-pod-cyan select-none flex flex-col justify-between shadow-md">
+                                <div>
+                                    <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-pod-cyan/25">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inquiry-dot w-2 h-2 rounded-full bg-pod-cyan/70 group-hover:bg-pod-cyan group-hover:shadow-[0_0_8px_#00F2FF] transition-all"></span>
+                                            <span class="text-xs font-mono font-bold text-pod-cyan tracking-wider">INQUIRY 03</span>
+                                        </div>
+                                        <span class="inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-black/60 border border-pod-cyan/30 text-gray-400 transition-all">PENDING</span>
+                                    </div>
+                                    <p id="disp-sub-q3" class="text-base sm:text-lg font-display font-semibold text-white leading-relaxed"></p>
+                                </div>
+                                <div class="pt-3 mt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                                    <span class="text-pod-cyan/70 tracking-wider">DELIBERATION TARGET</span>
+                                    <span class="inquiry-hint text-gray-500 group-hover:text-pod-cyan transition-colors">Tap to toggle</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -524,11 +588,14 @@
 
                 <!-- 4-MINUTE CHRONOMETER HUD GAUGE -->
                 <div class="hud-panel p-6 sm:p-8 rounded-xl flex flex-col items-center text-center relative overflow-hidden">
-                    <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-widest mb-1">
-                        Mandatory Deliberation Chronometer
-                    </span>
-                    <p class="text-xs font-mono text-gray-300 max-w-lg mb-6">
-                        Students must debate for at least <strong class="text-pod-cyan">4 minutes</strong>. Deliberation can extend as long as debaters choose; argument submission unlocks once the countdown finishes.
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="w-2 h-2 rounded-full bg-pod-cyan shadow-[0_0_8px_#00F2FF] animate-pulse"></span>
+                        <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-widest">
+                            Oral Deliberation Chronometer
+                        </span>
+                    </div>
+                    <p class="text-xs font-mono text-gray-300 max-w-md mb-5 text-center">
+                        Minimum deliberation: <strong class="text-pod-cyan">4:00</strong>. Submission console unlocks automatically once timer completes.
                     </p>
 
                     <!-- Hexagonal / Circular Stasis Gauge Readout -->
@@ -582,20 +649,23 @@
             <div id="argument-screen" class="hidden space-y-6">
 
                 <!-- Topic Reference Header -->
-                <div class="hud-panel p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="hud-panel p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <span class="text-[10px] font-mono text-pod-cyan uppercase tracking-wider block">Central Proposition</span>
-                        <p id="arg-header-question" class="text-sm sm:text-base font-display font-bold text-white"></p>
+                        <span class="text-xs font-mono text-pod-cyan uppercase tracking-wider block font-bold mb-1">Central Proposition</span>
+                        <p id="arg-header-question" class="text-base sm:text-lg font-display font-bold text-white"></p>
                     </div>
-                    <button onclick="toggleInquiriesDrawer()" class="btn-pill-secondary px-3.5 py-1.5 text-xs whitespace-nowrap self-end sm:self-auto">
-                        View Sub-Questions
+                    <button onclick="toggleInquiriesDrawer()" id="btn-toggle-inquiries" class="btn-pill-secondary px-4 py-2 text-xs font-mono whitespace-nowrap self-end sm:self-auto flex items-center gap-1.5">
+                        <span>◈ View Sub-Questions</span>
                     </button>
                 </div>
 
                 <!-- Inquiries Drawer -->
-                <div id="inquiries-drawer-box" class="hidden hud-panel p-4 rounded-xl text-xs space-y-2">
-                    <span class="text-[11px] font-mono font-bold text-pod-cyan uppercase block">Explored Inquiries:</span>
-                    <div id="inquiries-drawer-content" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
+                <div id="inquiries-drawer-box" class="hidden hud-panel p-5 rounded-xl space-y-3 border-2 border-pod-cyan/40">
+                    <div class="flex items-center justify-between pb-2 border-b border-pod-cyan/20">
+                        <span class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider block">◈ Proposition Inquiries Reference:</span>
+                        <span class="text-[11px] font-mono text-gray-400">Guiding prompts for debater arguments</span>
+                    </div>
+                    <div id="inquiries-drawer-content" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                 </div>
 
                 <!-- Devil's Advocate 50% Rule Banner -->
@@ -806,6 +876,31 @@
             });
         }
 
+        // --- API KEY DECRYPTION (Shift +7 Caesar Cipher) ---
+        function decryptApiKey(rawEnc) {
+            if (!rawEnc) return "";
+            // Primary: Shift 7 (Dedicated API Key Caesar Cipher)
+            const dec7 = decryptText(rawEnc, 7);
+            if (dec7.startsWith("OPENROUTER:") || dec7.startsWith("GEMINI:") || dec7.startsWith("AIzaSy") || dec7.startsWith("sk-or-")) {
+                return dec7;
+            }
+            // Fallback: Shift 2 (If whole-deck Shift -5 was applied to a Shift +7 key)
+            const dec2 = decryptText(rawEnc, 2);
+            if (dec2.startsWith("OPENROUTER:") || dec2.startsWith("GEMINI:") || dec2.startsWith("AIzaSy") || dec2.startsWith("sk-or-")) {
+                return dec2;
+            }
+            // Fallback: Shift 5 (Legacy compatibility)
+            const dec5 = decryptText(rawEnc, 5);
+            if (dec5.startsWith("OPENROUTER:") || dec5.startsWith("GEMINI:") || dec5.startsWith("AIzaSy") || dec5.startsWith("sk-or-")) {
+                return dec5;
+            }
+            // Fallback: Raw unencrypted key or direct provider prefix
+            if (rawEnc.startsWith("OPENROUTER:") || rawEnc.startsWith("GEMINI:") || rawEnc.startsWith("AIzaSy") || rawEnc.startsWith("sk-or-")) {
+                return rawEnc;
+            }
+            return dec7;
+        }
+
         // --- STATE MANAGEMENT ---
         let questionBank = [];
         let embeddedApiKey = ""; // Parsed silently from Column E
@@ -951,8 +1046,12 @@
                     const colE = row[4].trim();
                     if (colE.startsWith("API_KEY:") || colE.startsWith("KEY:")) {
                         const rawEnc = colE.replace(/^(API_KEY:|KEY:)/, '').trim();
-                        embeddedApiKey = decryptText(rawEnc, 5);
-                    } else if (colE.startsWith("AIzaSy")) {
+                        embeddedApiKey = decryptApiKey(rawEnc);
+                    } else if (colE.startsWith("VKD_FZT:") || colE.startsWith("FZT:")) {
+                        // "API_KEY:" / "KEY:" after full-deck shift -5 was applied
+                        const rawEnc = colE.replace(/^(VKD_FZT:|FZT:)/, '').trim();
+                        embeddedApiKey = decryptApiKey(rawEnc);
+                    } else if (colE.startsWith("AIzaSy") || colE.startsWith("sk-or-")) {
                         embeddedApiKey = colE;
                     }
                 }
@@ -1148,9 +1247,16 @@
             document.getElementById('disp-sub-q3').textContent = currentQ.followUp3 || "Formulate illustrative analogies and counter-examples.";
 
             document.querySelectorAll('.inquiry-card').forEach(card => {
-                card.classList.remove('border-pod-cyan', 'bg-pod-cyan/15');
-                card.querySelector('.inquiry-status').textContent = 'PENDING';
-                card.querySelector('.inquiry-status').className = 'inquiry-status text-[10px] font-mono text-gray-500';
+                card.classList.remove('is-active', 'border-pod-cyan', 'bg-pod-cyan/15');
+                const status = card.querySelector('.inquiry-status');
+                if (status) {
+                    status.textContent = 'PENDING';
+                    status.className = 'inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-black/60 border border-pod-cyan/30 text-gray-400 transition-all';
+                }
+                const dot = card.querySelector('.inquiry-dot');
+                if (dot) dot.className = 'inquiry-dot w-2 h-2 rounded-full bg-pod-cyan/70 group-hover:bg-pod-cyan group-hover:shadow-[0_0_8px_#00F2FF] transition-all';
+                const hint = card.querySelector('.inquiry-hint');
+                if (hint) hint.textContent = 'Tap to toggle';
             });
 
             startChronometer();
@@ -1158,15 +1264,29 @@
 
         function toggleSubQuestion(el) {
             playClick();
-            const isChecked = el.classList.toggle('border-pod-cyan');
-            el.classList.toggle('bg-pod-cyan/15', isChecked);
+            const isChecked = el.classList.toggle('is-active');
             const status = el.querySelector('.inquiry-status');
+            const dot = el.querySelector('.inquiry-dot');
+            const hint = el.querySelector('.inquiry-hint');
+
             if (isChecked) {
-                status.textContent = '✓ EXPLORED';
-                status.className = 'inquiry-status text-[10px] font-mono text-pod-cyan font-bold';
+                if (status) {
+                    status.textContent = '✓ EXPLORED';
+                    status.className = 'inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-pod-cyan/25 border border-pod-cyan text-pod-cyan shadow-[0_0_10px_rgba(0,242,255,0.4)] transition-all';
+                }
+                if (dot) {
+                    dot.className = 'inquiry-dot w-2 h-2 rounded-full bg-pod-cyan shadow-[0_0_10px_#00F2FF] transition-all';
+                }
+                if (hint) hint.textContent = 'Tap to reset';
             } else {
-                status.textContent = 'PENDING';
-                status.className = 'inquiry-status text-[10px] font-mono text-gray-500';
+                if (status) {
+                    status.textContent = 'PENDING';
+                    status.className = 'inquiry-status text-[11px] font-mono font-bold px-2.5 py-0.5 rounded bg-black/60 border border-pod-cyan/30 text-gray-400 transition-all';
+                }
+                if (dot) {
+                    dot.className = 'inquiry-dot w-2 h-2 rounded-full bg-pod-cyan/70 group-hover:bg-pod-cyan group-hover:shadow-[0_0_8px_#00F2FF] transition-all';
+                }
+                if (hint) hint.textContent = 'Tap to toggle';
             }
         }
 
@@ -1275,9 +1395,27 @@
 
             const drawer = document.getElementById('inquiries-drawer-content');
             drawer.innerHTML = `
-                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 1:</strong> ${currentQ.followUp1 || 'N/A'}</div>
-                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 2:</strong> ${currentQ.followUp2 || 'N/A'}</div>
-                <div class="bg-black/60 p-2.5 rounded border border-pod-cyan/30"><strong class="text-pod-cyan block mb-1">Inquiry 3:</strong> ${currentQ.followUp3 || 'N/A'}</div>
+                <div class="bg-black/70 p-4 rounded-xl border border-pod-cyan/35 flex flex-col justify-between shadow-sm">
+                    <div class="flex items-center gap-2 mb-2 pb-2 border-b border-pod-cyan/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-pod-cyan"></span>
+                        <strong class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">Inquiry 01</strong>
+                    </div>
+                    <p class="text-sm sm:text-base font-display font-medium text-white leading-relaxed">${currentQ.followUp1 || 'Examine core premises and assumptions.'}</p>
+                </div>
+                <div class="bg-black/70 p-4 rounded-xl border border-pod-cyan/35 flex flex-col justify-between shadow-sm">
+                    <div class="flex items-center gap-2 mb-2 pb-2 border-b border-pod-cyan/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-pod-cyan"></span>
+                        <strong class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">Inquiry 02</strong>
+                    </div>
+                    <p class="text-sm sm:text-base font-display font-medium text-white leading-relaxed">${currentQ.followUp2 || 'Evaluate secondary implications and edge cases.'}</p>
+                </div>
+                <div class="bg-black/70 p-4 rounded-xl border border-pod-cyan/35 flex flex-col justify-between shadow-sm">
+                    <div class="flex items-center gap-2 mb-2 pb-2 border-b border-pod-cyan/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-pod-cyan"></span>
+                        <strong class="text-xs font-mono font-bold text-pod-cyan uppercase tracking-wider">Inquiry 03</strong>
+                    </div>
+                    <p class="text-sm sm:text-base font-display font-medium text-white leading-relaxed">${currentQ.followUp3 || 'Formulate illustrative analogies and counter-examples.'}</p>
+                </div>
             `;
 
             renderArgumentTerminals();
@@ -1286,7 +1424,12 @@
 
         function toggleInquiriesDrawer() {
             playClick();
-            document.getElementById('inquiries-drawer-box').classList.toggle('hidden');
+            const box = document.getElementById('inquiries-drawer-box');
+            const btn = document.getElementById('btn-toggle-inquiries');
+            const isHidden = box.classList.toggle('hidden');
+            if (btn) {
+                btn.innerHTML = isHidden ? `<span>◈ View Sub-Questions</span>` : `<span>✕ Hide Sub-Questions</span>`;
+            }
         }
 
         // --- ARGUMENT CONSOLES & SPEECH-TO-TEXT ---

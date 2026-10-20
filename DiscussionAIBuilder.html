@@ -325,19 +325,19 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                         <div>
-                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 1:</label>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1 font-semibold">Follow-Up Inquiry 1:</label>
                             <input type="text" value="${card.f1}" onchange="updateCardData('${card.id}', 'f1', this.value)" 
-                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Probe premises...">
+                                   class="hud-input w-full px-3.5 py-2 rounded-lg text-xs sm:text-sm font-sans" placeholder="Probe premises...">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 2:</label>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1 font-semibold">Follow-Up Inquiry 2:</label>
                             <input type="text" value="${card.f2}" onchange="updateCardData('${card.id}', 'f2', this.value)" 
-                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Challenge assumptions...">
+                                   class="hud-input w-full px-3.5 py-2 rounded-lg text-xs sm:text-sm font-sans" placeholder="Challenge assumptions...">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1">Follow-Up Inquiry 3:</label>
+                            <label class="block text-[11px] font-mono text-pod-cyan uppercase mb-1 font-semibold">Follow-Up Inquiry 3:</label>
                             <input type="text" value="${card.f3}" onchange="updateCardData('${card.id}', 'f3', this.value)" 
-                                   class="hud-input w-full px-3 py-1.5 rounded-full text-xs" placeholder="Ask for analogy...">
+                                   class="hud-input w-full px-3.5 py-2 rounded-lg text-xs sm:text-sm font-sans" placeholder="Ask for analogy...">
                         </div>
                     </div>
                 `;
@@ -406,7 +406,7 @@
                 alert("Please enter your API Key first.");
                 return;
             }
-            const snippet = `API_KEY:${encryptText(payload, 5)}`;
+            const snippet = `API_KEY:${encryptText(payload, 7)}`;
             navigator.clipboard.writeText(snippet);
             alert(`Copied to clipboard!\n\nPaste this exact value into Cell E1 of your Google Sheet:\n\n${snippet}`);
         }
@@ -420,7 +420,7 @@
             }
 
             const payload = buildFormattedKeyPayload();
-            const encryptedKey = payload ? `API_KEY:${encryptText(payload, 5)}` : "";
+            const encryptedKey = payload ? `API_KEY:${encryptText(payload, 7)}` : "";
 
             let csvContent = "";
             const headers = ["Main Question", "Follow-up 1", "Follow-up 2", "Follow-up 3", "API_KEY"];
@@ -504,7 +504,20 @@
                     if (rows[1] && rows[1].length > 4 && rows[1][4]) {
                         const val = rows[1][4].trim();
                         if (val.startsWith("API_KEY:")) {
-                            const decryptedPayload = decryptText(val.replace("API_KEY:", "").trim(), 5);
+                            const rawEnc = val.replace("API_KEY:", "").trim();
+                            // Attempt Shift 7 (Standard API Key cipher), with Shift 2 and Shift 5 fallbacks
+                            let decryptedPayload = decryptText(rawEnc, 7);
+                            if (!decryptedPayload.startsWith("OPENROUTER:") && !decryptedPayload.startsWith("GEMINI:") && !decryptedPayload.startsWith("AIzaSy") && !decryptedPayload.startsWith("sk-or-")) {
+                                const dec2 = decryptText(rawEnc, 2);
+                                if (dec2.startsWith("OPENROUTER:") || dec2.startsWith("GEMINI:") || dec2.startsWith("AIzaSy") || dec2.startsWith("sk-or-")) {
+                                    decryptedPayload = dec2;
+                                } else {
+                                    const dec5 = decryptText(rawEnc, 5);
+                                    if (dec5.startsWith("OPENROUTER:") || dec5.startsWith("GEMINI:") || dec5.startsWith("AIzaSy") || dec5.startsWith("sk-or-")) {
+                                        decryptedPayload = dec5;
+                                    }
+                                }
+                            }
                             if (decryptedPayload.startsWith("OPENROUTER:")) {
                                 document.getElementById('provider-select').value = 'openrouter';
                                 const parts = decryptedPayload.replace("OPENROUTER:", "").split(":");
