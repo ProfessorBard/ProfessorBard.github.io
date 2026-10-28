@@ -1646,13 +1646,64 @@
                     evalResult = runLocalHeuristicArbiter(currentQ, submissions);
                 }
 
+                // Deterministic verification: enforce Devil's Advocate bonus and total score based strictly on debater selection
+                evalResult = sanitizeEvaluationResults(evalResult, submissions);
+
                 renderEvaluationResults(evalResult);
             } catch (err) {
                 console.error("AI Arbitration Error:", err);
                 // Safe fallback to local engine on error so class is never interrupted
                 const fallbackResult = runLocalHeuristicArbiter(currentQ, submissions);
-                renderEvaluationResults(fallbackResult);
+                renderEvaluationResults(sanitizeEvaluationResults(fallbackResult, submissions));
             }
+        }
+
+        // --- SANITIZE & VALIDATE EVALUATION RESULTS ---
+        function sanitizeEvaluationResults(evalResult, submissions) {
+            if (!evalResult || !Array.isArray(evalResult.evaluations)) {
+                return evalResult;
+            }
+
+            evalResult.evaluations.forEach((ev, idx) => {
+                // Find matching submission by team name (case-insensitive) or by position index
+                const sub = submissions.find(s => (s.teamName || '').trim().toLowerCase() === (ev.teamName || '').trim().toLowerCase()) || submissions[idx];
+                const isDA = sub ? !!sub.isDevilsAdvocate : false;
+
+                // Normalize team name to match roster exactly
+                if (sub && sub.teamName) {
+                    ev.teamName = sub.teamName;
+                }
+
+                // Strictly enforce: Devil's Advocate bonus is 1 only if the debater actually claimed the stance
+                ev.devilsAdvocateBonus = isDA ? 1 : 0;
+
+                // Ensure numeric validity for all components
+                const premises = Math.max(0, parseInt(ev.premiseCount, 10) || 0);
+                const analogies = Math.max(0, parseInt(ev.analogyCount, 10) || 0);
+                const quality = Math.max(0, parseInt(ev.qualityScore, 10) || 0);
+
+                ev.premiseCount = premises;
+                ev.analogyCount = analogies;
+                ev.qualityScore = quality;
+
+                // Deterministic total score formula: premises + (analogies * 2) + quality + devilsAdvocateBonus
+                ev.totalRoundScore = premises + (analogies * 2) + quality + ev.devilsAdvocateBonus;
+            });
+
+            // Reconcile victor if needed
+            if (evalResult.evaluations.length > 0) {
+                const highestScorer = [...evalResult.evaluations].sort((a, b) => b.totalRoundScore - a.totalRoundScore)[0];
+                const currentVictor = evalResult.evaluations.find(e => (e.teamName || '').trim().toLowerCase() === (evalResult.winnerName || '').trim().toLowerCase());
+
+                if (!currentVictor || (highestScorer && highestScorer.totalRoundScore > currentVictor.totalRoundScore)) {
+                    if (highestScorer) {
+                        evalResult.winnerName = highestScorer.teamName;
+                        evalResult.winnerRationale = `${highestScorer.teamName} achieved the highest dialectic score with rigorous premise chaining and analogical depth.`;
+                    }
+                }
+            }
+
+            return evalResult;
         }
 
         function extractJson(text) {
@@ -1703,17 +1754,20 @@ INQUIRIES EXPLORED:
 DEBATER SUBMISSIONS:
 ${submissions.map(s => `
 [DEBATER / TEAM]: "${s.teamName}"
-[DEVIL'S ADVOCATE STANCE]: ${s.isDevilsAdvocate ? "YES (+1 Bonus point)" : "NO"}
+[DEVIL'S ADVOCATE STANCE]: ${s.isDevilsAdvocate ? "YES (Debater claimed Devil's Advocate stance)" : "NO (Standard stance)"}
 [ARGUMENT]:
 """${s.argument}"""
 `).join("\n")}
 
 EVALUATION DIRECTIVES:
-1. Syllogistic Chain & Premises: Count distinct premises (p -> q, q -> r, r -> s, or reverse). Count the conclusion as a premise. Evaluate logical soundness.
-2. Analogies: Count and assess aptness of illustrative analogies.
-3. Cogency & Quality: Argument depth, persuasive clarity, and direct relevance to the proposition and inquiries.
-4. Devil's Advocate Bonus: If marked as Devil's Advocate, automatically grant an extra +1 point bonus.
-5. Determine Round Victor: Select the best overall answer taking into account premises, analogies, quality, and the Devil's Advocate bonus.
+1. Syllogistic Chain & Premises: Count distinct premises (p -> q, q -> r, r -> s, or reverse). Count the conclusion as a premise. Evaluate logical soundness (1-6 points).
+2. Analogies: Count and assess aptness of illustrative analogies (each valid analogy contributes 2 points).
+3. Cogency & Quality: Argument depth, persuasive clarity, and direct relevance to the proposition and inquiries (score out of 10).
+4. Devil's Advocate Bonus: Strictly check the [DEVIL'S ADVOCATE STANCE] header for each debater:
+   - If [DEVIL'S ADVOCATE STANCE] is YES: devilsAdvocateBonus MUST be 1.
+   - If [DEVIL'S ADVOCATE STANCE] is NO: devilsAdvocateBonus MUST be 0. Do NOT award bonus points to any debater whose stance is NO.
+5. Total Round Score: Compute for each debater: totalRoundScore = premiseCount + (analogyCount * 2) + qualityScore + devilsAdvocateBonus.
+6. Determine Round Victor: Select the best overall answer taking into account premise depth, analogies, quality, and the Devil's Advocate bonus.
 
 Respond strictly in valid JSON matching this schema:
 {
@@ -1727,8 +1781,8 @@ Respond strictly in valid JSON matching this schema:
       "analogyCount": 1,
       "analogiesIdentified": "Description of analogy used, or 'None cited'",
       "qualityScore": 8,
-      "devilsAdvocateBonus": 1,
-      "totalRoundScore": 10,
+      "devilsAdvocateBonus": 0,
+      "totalRoundScore": 13,
       "aiCritique": "Concise feedback from the AI Philosopher."
     }
   ]
